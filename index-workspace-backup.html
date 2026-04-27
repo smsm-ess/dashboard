@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE WORKSPACE | Sam</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #0a0a0f; 
+            --accent: #a855f7; 
+            --accent-glow: rgba(168, 85, 247, 0.35);
+            --accent-alt: #6366f1;
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-hover: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --font: 'Plus Jakarta Sans', sans-serif;
+            --success: #10b981;
+            --danger: #ef4444;
+            --radius: 12px;
+            --trans: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); }
+        html { font-size: 14px; } /* Global zoom out */
+        body { 
+            background: var(--bg); 
+            color: var(--text-main); 
+            height: 100vh; 
+            overflow: hidden; 
+            display: flex;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(168, 85, 247, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 40%);
+        }
+        
+        .glass { background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: var(--radius); }
+        
+        /* Sidebar */
+        aside {
+            width: 250px;
+            background: rgba(10, 10, 15, 0.9);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            padding: 0.75rem;
+        }
+        .sidebar-header {
+            padding: 1.25rem 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .logo { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 0.5rem; }
+        .logo span { background: linear-gradient(135deg, var(--accent), var(--accent-alt)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo-dot { width: 7px; height: 7px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); }
+        
+        .nav-links {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius);
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: var(--trans);
+            cursor: pointer;
+            border: 1px solid transparent;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+        .nav-btn:hover {
+            background: var(--glass-hover);
+            color: var(--text-main);
+            transform: translateX(4px);
+        }
+        .nav-btn.active {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(99, 102, 241, 0.12));
+            color: var(--text-main);
+            border-color: rgba(168, 85, 247, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        .nav-btn.active i { color: var(--accent); }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 0.75rem;
+            background: var(--glass-bg);
+            border-radius: var(--radius);
+        }
+        .server-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); position: relative; }
+        .status-dot.online::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2.5); opacity: 0; } }
+
+        /* Main Content Area */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            background: rgba(10, 10, 15, 0.5);
+        }
+        
+        header {
+            height: 70px;
+            padding: 0 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(10, 10, 15, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        .page-title { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.5px; }
+        .header-right { display: flex; align-items: center; gap: 2rem; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
+        #clock { color: var(--text-main); font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+
+        .content-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2.5rem;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { 
+            display: block; 
+            animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+        }
+
+        @keyframes slideInUp { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* Interactive Components */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal {
+            width: 600px;
+            max-width: 90%;
+            background: var(--bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 2.5rem;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.7);
+            position: relative;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .modal-title { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
+        .close-modal { cursor: pointer; color: var(--text-muted); font-size: 1.5rem; transition: var(--trans); }
+        .close-modal:hover { color: var(--text-main); }
+        
+        .account-list { display: flex; flex-direction: column; gap: 1rem; max-height: 400px; overflow-y: auto; }
+        .account-item { 
+            padding: 1.25rem; 
+            background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid var(--glass-border); 
+            border-radius: var(--radius);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--trans);
+        }
+        .account-item:hover { background: rgba(255, 255, 255, 0.06); border-color: var(--accent); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .section-header { 
+            font-size: 0.75rem; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            color: var(--accent); 
+            margin-bottom: 1.5rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+        }
+        .section-header::after { content: ''; flex: 1; height: 1px; background: var(--glass-border); }
+
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+        .metric-card { 
+            background: var(--glass-bg); 
+            border: 1px solid var(--glass-border); 
+            padding: 1.5rem; 
+            border-radius: var(--radius);
+            position: relative; 
+            overflow: hidden;
+            transition: var(--trans);
+            cursor: default;
+        }
+        .metric-card:hover {
+            transform: translateY(-4px);
+            background: var(--glass-hover);
+            border-color: rgba(168, 85, 247, 0.4);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 3px; height: 100%;
+            background: var(--accent);
+        }
+        .metric-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px; }
+        .metric-value { font-size: 2.1rem; font-weight: 800; letter-spacing: -1px; }
+        
+        .dashboard-cols { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+        .panel { 
+            background: var(--glass-bg); 
+            border: 1px solid var(--glass-border); 
+            padding: 1.75rem; 
+            border-radius: var(--radius);
+            transition: var(--trans);
+        }
+        .panel:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .activity-item { 
+            padding: 1rem; 
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, 0.02);
+            margin-bottom: 0.75rem;
+            border: 1px solid transparent;
+            transition: var(--trans);
+        }
+        .activity-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: var(--glass-border);
+            transform: scale(1.01);
+        }
+        .activity-time { font-size: 0.7rem; color: var(--accent); font-weight: 700; margin-bottom: 0.4rem; display: block; }
+        
+        .kanban-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .kanban-col { background: rgba(0, 0, 0, 0.15); border-radius: var(--radius); padding: 1.25rem; border: 1px solid var(--glass-border); }
+        .task-card { 
+            background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid var(--glass-border); 
+            padding: 1rem; 
+            border-radius: var(--radius);
+            margin-bottom: 0.75rem; 
+            font-size: 0.9rem; 
+            transition: var(--trans);
+            cursor: pointer;
+        }
+        .task-card:hover {
+            background: var(--glass-hover);
+            border-color: var(--accent);
+            transform: translateX(2px);
+        }
+        .task-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; display: flex; align-items: center; gap: 0.4rem; }
+
+        .briefs-layout { display: flex; gap: 2rem; height: 100%; }
+        .briefs-nav { width: 260px; padding-right: 1.25rem; overflow-y: auto; }
+        .brief-nav-item { 
+            padding: 1rem; 
+            cursor: pointer; 
+            border-radius: var(--radius); 
+            font-size: 0.9rem; 
+            font-weight: 600;
+            color: var(--text-muted); 
+            margin-bottom: 0.5rem; 
+            border: 1px solid var(--glass-border); 
+            background: rgba(255, 255, 255, 0.02);
+            transition: var(--trans);
+        }
+        .brief-nav-item:hover { background: var(--glass-hover); color: var(--text-main); }
+        .brief-nav-item.active { 
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(99, 102, 241, 0.08));
+            color: var(--text-main); 
+            border-color: var(--accent); 
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.08);
+        }
+        .brief-main { flex: 1; overflow-y: auto; padding-right: 1.25rem; }
+
+        /* Notes Area */
+        .notes-area { 
+            width: 100%; 
+            height: calc(100vh - 300px); 
+            background: rgba(0, 0, 0, 0.15); 
+            border: 1px solid var(--glass-border); 
+            border-radius: var(--radius);
+            padding: 1.75rem;
+            color: var(--text-main); 
+            font-size: 1.05rem; 
+            line-height: 1.7; 
+            resize: none; 
+            outline: none; 
+            transition: var(--trans);
+        }
+        .notes-area:focus { border-color: var(--accent); background: rgba(0, 0, 0, 0.25); }
+
+        ::-webkit-scrollbar { width: 7px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.15); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
+
+        /* Custom Tabs for Docs Portal */
+        /* Period picker */
+        .drp-preset-btn {
+            padding: 0.4rem 0.5rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--glass-border);
+            border-radius: 7px;
+            color: var(--text-muted);
+            font-family: var(--font);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.12s;
+            text-align: center;
+        }
+        .drp-preset-btn:hover { background: rgba(168,85,247,0.12); border-color: var(--accent); color: var(--accent); }
+        .drp-preset-active    { background: rgba(168,85,247,0.18) !important; border-color: var(--accent) !important; color: var(--accent) !important; }
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <aside>
+        <div class="sidebar-header">
+            <div class="logo"><div class="logo-dot"></div><span>WORKSPACE</span></div>
+        </div>
+        
+        <nav class="nav-links">
+            <button class="nav-btn active" onclick="switchTab('cs-command')">📊 CS Command</button>
+            <button class="nav-btn" onclick="switchTab('account-health')">❤️ Account Health</button>
+            <button class="nav-btn" onclick="switchTab('client-briefs')">📂 Client Briefs</button>
+            <button class="nav-btn" onclick="switchTab('live-intel')">📡 Live Intel</button>
+            <button class="nav-btn" onclick="switchTab('active-customers')">💎 Active Customers</button>
+            <button class="nav-btn" onclick="switchTab('projects')">📋 Projects</button>
+            <button class="nav-btn" onclick="switchTab('notes')">📝 Notes</button>
+            <button class="nav-btn" onclick="switchTab('command-center')">🏢 Command Center</button>
+            <button class="nav-btn" style="color: #60a5fa;" onclick="switchTab('docs')">📚 Docs Portal</button>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="server-status">
+                <div class="status-dot online"></div>
+                <span>Engine: Flash-Cloud Active</span>
+            </div>
+        </div>
+    </aside>
+
+    <main>
+        <header>
+            <div class="page-title" id="pageTitle">CS Command</div>
+            <div class="header-right">
+                <div id="weatherWidget">☁️ --°C</div>
+                <div id="clock">00:00:00</div>
+            </div>
+        </header>
+
+        <div class="content-scroll">
+            
+            <!-- CS Command (Outreach Revamp) -->
+            <section id="outreach-velocity" class="tab-content" style="display:none;">
+                <div class="section-header">Outreach Velocity Pulse</div>
+                <div class="metrics-grid" id="outreachMetrics">
+                    <div class="metric-card" style="border-left-color: var(--accent);">
+                        <div class="metric-label">Total Outreach Activities</div>
+                        <div class="metric-value" id="total-activities">0</div>
+                        <div class="task-meta" style="margin-top:0.75rem;">Calls, Emails & Meetings</div>
+                    </div>
+                    <div class="metric-card" style="border-left-color: var(--success);">
+                        <div class="metric-label">Avg. Response Rate</div>
+                        <div class="metric-value" id="avg-response-rate">0%</div>
+                        <div class="task-meta" style="margin-top:0.75rem; color:var(--success)">+2.4% vs last week</div>
+                    </div>
+                    <div class="metric-card" style="border-left-color: #f59e0b;">
+                        <div class="metric-label">Active Prospects</div>
+                        <div class="metric-value" id="active-prospects">0</div>
+                        <div class="task-meta" style="margin-top:0.75rem; color:#f59e0b">Currently in sequence</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-cols">
+                    <div class="panel">
+                        <div class="section-header">Client Engagement Ledger</div>
+                        <style>
+                            .outreach-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+                            .outreach-table th { text-align: left; padding: 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); border-bottom: 1px solid var(--glass-border); }
+                            .outreach-table td { padding: 1.25rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.9rem; }
+                            .type-pill { padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; background: rgba(168, 85, 247, 0.1); color: var(--accent); }
+                        </style>
+                        <div style="overflow-x: auto;">
+                            <table class="outreach-table">
+                                <thead>
+                                    <tr>
+                                        <th>Account / Client</th>
+                                        <th>Last Activity</th>
+                                        <th>Type</th>
+                                        <th>CSM / Owner</th>
+                                        <th>Sequence</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="outreachLedger">
+                                    <tr><td colspan="5" style="text-align:center; padding: 4rem; color: var(--text-muted);">Awaiting Outreach spreadsheet upload...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="section-header">CSM Activity Leaderboard</div>
+                        <ul class="activity-feed" id="csmLeaderboard">
+                            <li class="activity-item" style="color:var(--text-muted); text-align:center; padding: 3rem;">No activity data found.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Live Intel -->
+            <section id="live-intel" class="tab-content">
+                <div class="section-header">Real-Time Intelligence</div>
+                <div class="panel" style="max-width: 1000px;">
+                    <ul class="activity-feed" id="intelFeed"></ul>
+                </div>
+            </section>
+
+            <!-- Account Health -->
+            <section id="account-health" class="tab-content">
+                <div class="section-header">Account Health Dashboard</div>
+                
+                <!-- Status Summary -->
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:2rem;">
+                    <div class="panel" style="padding:1rem;text-align:center;border-top:3px solid #10b981;">
+                        <div style="font-size:0.65rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Stable</div>
+                        <div style="font-size:2rem;font-weight:800;color:#10b981;" id="health-stable">13</div>
+                    </div>
+                    <div class="panel" style="padding:1rem;text-align:center;border-top:3px solid #3b82f6;">
+                        <div style="font-size:0.65rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Healthy</div>
+                        <div style="font-size:2rem;font-weight:800;color:#3b82f6;" id="health-healthy">1</div>
+                    </div>
+                    <div class="panel" style="padding:1rem;text-align:center;border-top:3px solid #6366f1;">
+                        <div style="font-size:0.65rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">New</div>
+                        <div style="font-size:2rem;font-weight:800;color:#6366f1;" id="health-new">7</div>
+                    </div>
+                    <div class="panel" style="padding:1rem;text-align:center;border-top:3px solid #f59e0b;">
+                        <div style="font-size:0.65rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Medium Priority</div>
+                        <div style="font-size:2rem;font-weight:800;color:#f59e0b;" id="health-medium">5</div>
+                    </div>
+                    <div class="panel" style="padding:1rem;text-align:center;border-top:3px solid #ef4444;">
+                        <div style="font-size:0.65rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">At Risk</div>
+                        <div style="font-size:2rem;font-weight:800;color:#ef4444;" id="health-risk">4</div>
+                    </div>
+                </div>
+
+                <!-- Snapshot Controls -->
+                <div style="display:flex;gap:1rem;margin-bottom:2rem;align-items:center;">
+                    <button onclick="saveHealthSnapshot()" style="padding:0.75rem 1.5rem;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.9rem;">💾 Save Weekly Snapshot</button>
+                    <button onclick="toggleSnapshotHistory()" style="padding:0.75rem 1.5rem;background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:6px;cursor:pointer;font-weight:700;font-size:0.9rem;">📋 View History</button>
+                    <div id="snapshotInfo" style="color:var(--text-muted);font-size:0.85rem;margin-left:auto;"></div>
+                </div>
+
+                <!-- Snapshot History Modal (Hidden) -->
+                <div id="snapshotHistory" style="display:none;margin-bottom:2rem;padding:1.5rem;background:rgba(168,85,247,0.05);border:1px solid var(--glass-border);border-radius:8px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                        <div style="font-weight:700;color:var(--text-main);">Snapshot History</div>
+                        <button onclick="toggleSnapshotHistory()" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem;">✕</button>
+                    </div>
+                    <div id="snapshotList" style="display:grid;gap:0.75rem;"></div>
+                </div>
+
+                <!-- High Priority Alerts -->
+                <div class="panel" style="margin-bottom:2rem; border-left: 4px solid #ef4444;">
+                    <div class="section-header" style="color:#ef4444;margin-bottom:1.5rem;">🔴 High Priority (Immediate Action Required)</div>
+                    <div id="healthHighPriority" style="display:grid;gap:1rem;">
+                        <div style="padding:1rem;background:rgba(239,68,68,0.05);border-radius:8px;border-left:3px solid #ef4444;">
+                            <div style="font-weight:700;color:var(--text-main);">OMIKAL</div>
+                            <div style="font-size:0.85rem;color:var(--text-muted);margin-top:0.25rem;">💳 Payment failed</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All Accounts Table -->
+                <div class="panel">
+                    <div class="section-header" style="margin-bottom:1.5rem;">Account Status Details</div>
+                    <style>
+                        .health-table { width: 100%; border-collapse: collapse; }
+                        .health-table th { text-align: left; padding: 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); border-bottom: 1px solid var(--glass-border); }
+                        .health-table td { padding: 1.25rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.9rem; }
+                        .health-table tr:hover { background: rgba(255,255,255,0.02); }
+                        .health-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; display: inline-block; }
+                        .health-stable { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+                        .health-healthy { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
+                        .health-new { background: rgba(99, 102, 241, 0.1); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.2); }
+                        .health-risk { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+                    </style>
+                    <div style="overflow-x: auto;">
+                        <table class="health-table">
+                            <thead>
+                                <tr>
+                                    <th>Account Name</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accountHealthList">
+                                <tr><td colspan="3" style="text-align:center;padding:3rem;color:var(--text-muted);">Loading account data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Client Briefs -->
+            <section id="client-briefs" class="tab-content">
+                <div class="briefs-layout">
+                    <div class="briefs-nav" id="briefsSidebar"></div>
+                    <div class="brief-main" id="briefsMain">
+                        <div style="color: var(--text-muted); text-align: center; margin-top: 6rem; font-size: 1.1rem;">Select a client profile to initialize the brief session.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Active Customers -->
+            <section id="active-customers" class="tab-content">
+                <div class="section-header">Live Revenue & Subscription Health</div>
+                <div class="metrics-grid" id="revenueMetrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Active Subscriptions</div>
+                        <div class="metric-value" id="count-active-subs">0</div>
+                    </div>
+                    <div class="metric-card" style="border-left-color: var(--accent-alt);">
+                        <div class="metric-label">Total MRR</div>
+                        <div class="metric-value" id="total-mrr">$0</div>
+                    </div>
+                    <div class="metric-card" style="border-left-color: var(--danger);">
+                        <div class="metric-label">Payment Risk (Unpaid)</div>
+                        <div class="metric-value" id="unpaid-invoices">0</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="section-header">Customer Subscription Ledger</div>
+                    <style>
+                        .ledger-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+                        .ledger-table th { text-align: left; padding: 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); border-bottom: 1px solid var(--glass-border); }
+                        .ledger-table td { padding: 1.25rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.9rem; vertical-align: middle; }
+                        .ledger-table tr:hover { background: rgba(255,255,255,0.02); }
+                        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+                        .status-active { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
+                        .mrr-pill { font-weight: 700; color: var(--accent); }
+                    </style>
+                    <div style="overflow-x: auto;">
+                        <table class="ledger-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer / Company</th>
+                                    <th>Plan Name</th>
+                                    <th>Status</th>
+                                    <th>MRR</th>
+                                    <th>ARR</th>
+                                    <th>Start Date</th>
+                                    <th>Next Due</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activeCustomerList">
+                                <tr><td colspan="7" style="text-align:center; padding: 4rem; color: var(--text-muted);">Syncing HubSpot revenue data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Projects -->
+            <section id="projects" class="tab-content">
+                <div class="section-header">Strategic Project Tracking</div>
+                <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="kanban-col panel">
+                        <div class="metric-label" style="color: var(--text-muted)">Backlog</div>
+                        <div id="col-backlog" style="margin-top:1.5rem;"></div>
+                    </div>
+                    <div class="kanban-col panel">
+                        <div class="metric-label" style="color: var(--accent)">In Progress</div>
+                        <div id="col-progress" style="margin-top:1.5rem;"></div>
+                    </div>
+                    <div class="kanban-col panel">
+                        <div class="metric-label" style="color: var(--success)">Completed</div>
+                        <div id="col-done" style="margin-top:1.5rem;"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CS COMMAND CENTER - ACCOUNT HEALTH & CHANGES -->
+            <!-- CS Command + Activities (merged) -->
+            <section id="cs-command" class="tab-content active">
+
+                <!-- ── HEADER METRICS BAR ── -->
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.5rem;">
+                    <div class="panel" style="padding:1rem;text-align:center;border-top:3px solid var(--accent);">
+                        <div style="font-size:0.65rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.4rem;">Active Accounts</div>
+                        <div style="font-size:2rem;font-weight:800;color:var(--accent);" id="csMetric-activeCompanies">--</div>
+                        <div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.3rem;">last 4 weeks</div>
+                    </div>
+                    <div class="panel" style="padding:1rem;text-align:center;border-top:3px solid #3b82f6;">
+                        <div style="font-size:0.65rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.4rem;">Avg Weekly Emails</div>
+                        <div style="font-size:2rem;font-weight:800;color:#3b82f6;" id="csMetric-avgEmails">--</div>
+                        <div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.3rem;">per account</div>
+                    </div>
+                    <div class="panel" style="padding:1rem;text-align:center;border-top:3px solid #10b981;">
+                        <div style="font-size:0.65rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.4rem;">Avg Weekly Calls</div>
+                        <div style="font-size:2rem;font-weight:800;color:#10b981;" id="csMetric-avgCalls">--</div>
+                        <div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.3rem;">per account</div>
+                    </div>
+                    <div class="panel" style="padding:1rem;text-align:center;border-top:3px solid #ec4899;">
+                        <div style="font-size:0.65rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.4rem;">Avg Reply Rate</div>
+                        <div style="font-size:2rem;font-weight:800;color:#ec4899;" id="csMetric-replyRate">--</div>
+                        <div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.3rem;">email replies / sent</div>
+                    </div>
+                    <div class="panel" style="padding:1rem;text-align:center;border-top:3px solid #f59e0b;">
+                        <div style="font-size:0.65rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.4rem;">Avg Connect Rate</div>
+                        <div style="font-size:2rem;font-weight:800;color:#f59e0b;" id="csMetric-avgConnectRate">--</div>
+                        <div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.3rem;">connects / calls</div>
+                    </div>
+                </div>
+
+                <!-- ── VIEW TOGGLE + FILTERS ── -->
+                <div class="panel" style="padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;">
+                    <!-- View toggle -->
+                    <div style="display:flex;background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);border-radius:8px;overflow:hidden;flex-shrink:0;">
+                        <button id="viewBtn-table" onclick="window.csSetView('table')" style="padding:0.5rem 1.1rem;font-size:0.8rem;font-weight:700;cursor:pointer;border:none;background:var(--accent);color:#fff;font-family:var(--font);">☰ Table</button>
+                        <button id="viewBtn-cards" onclick="window.csSetView('cards')" style="padding:0.5rem 1.1rem;font-size:0.8rem;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--text-muted);font-family:var(--font);">⊞ Cards</button>
+                    </div>
+                    <!-- Sort by -->
+                    <div style="display:flex;align-items:center;gap:0.6rem;">
+                        <span style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Sort</span>
+                        <select id="sortByFilter" onchange="filterAndRenderActivities()" style="padding:0.45rem 0.8rem;background:#111;border:1px solid var(--glass-border);border-radius:6px;color:var(--text-main);font-family:var(--font);font-size:0.82rem;cursor:pointer;">
+                            <option value="emails">📧 Emails</option>
+                            <option value="calls">📞 Calls</option>
+                            <option value="sms">💬 SMS</option>
+                            <option value="connectRate">🔗 Connect Rate</option>
+                            <option value="replyRate">↩ Reply Rate</option>
+                        </select>
+                        <select id="sortOrderFilter" onchange="filterAndRenderActivities()" style="padding:0.45rem 0.8rem;background:#111;border:1px solid var(--glass-border);border-radius:6px;color:var(--text-main);font-family:var(--font);font-size:0.82rem;cursor:pointer;">
+                            <option value="desc">↓ High → Low</option>
+                            <option value="asc">↑ Low → High</option>
+                        </select>
+                    </div>
+                    <!-- Filter by type -->
+                    <div style="display:flex;align-items:center;gap:0.6rem;">
+                        <span style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Filter</span>
+                        <select id="activityTypeFilter" onchange="filterAndRenderActivities()" style="padding:0.45rem 0.8rem;background:#111;border:1px solid var(--glass-border);border-radius:6px;color:var(--text-main);font-family:var(--font);font-size:0.82rem;cursor:pointer;">
+                            <option value="all">All</option>
+                            <option value="emails">Has Emails</option>
+                            <option value="calls">Has Calls</option>
+                            <option value="sms">Has SMS</option>
+                        </select>
+                    </div>
+                    <!-- Search -->
+                    <input id="csSearchInput" oninput="filterAndRenderActivities()" type="text" placeholder="🔍 Search account..." style="padding:0.45rem 0.9rem;background:#111;border:1px solid var(--glass-border);border-radius:6px;color:var(--text-main);font-family:var(--font);font-size:0.82rem;outline:none;min-width:160px;flex:1;max-width:240px;">
+                    <!-- Date range picker -->
+                    <div style="display:flex;align-items:center;gap:0.6rem;flex-shrink:0;position:relative;">
+                        <span style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Period</span>
+                        <button id="dateRangeBtn" onclick="window.drpToggle(event)" style="padding:0.45rem 0.9rem;background:#111;border:1px solid var(--glass-border);border-radius:6px;color:var(--text-main);font-family:var(--font);font-size:0.82rem;cursor:pointer;display:flex;align-items:center;gap:0.5rem;white-space:nowrap;min-width:170px;">
+                            <span>📅</span><span id="drpLabel">Last 3 Months</span><span style="color:var(--text-muted);margin-left:auto;">▼</span>
+                        </button>
+                        <!-- Period dropdown -->
+                        <div id="drpPopup" style="display:none;position:absolute;top:calc(100% + 8px);right:0;z-index:9999;background:#0d0d16;border:1px solid rgba(168,85,247,0.35);border-radius:14px;padding:1.25rem;box-shadow:0 24px 64px rgba(0,0,0,0.7);width:290px;box-sizing:border-box;">
+                            <!-- Presets -->
+                            <div style="font-size:0.65rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.6rem;">Quick Presets</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;margin-bottom:1rem;">
+                                <button onclick="window.drpPreset(7,  'Last 7 Days')"    class="drp-preset-btn">Last 7 Days</button>
+                                <button onclick="window.drpPreset(14, 'Last 2 Weeks')"   class="drp-preset-btn">Last 2 Weeks</button>
+                                <button onclick="window.drpPreset(30, 'Last 30 Days')"   class="drp-preset-btn">Last 30 Days</button>
+                                <button onclick="window.drpPreset(60, 'Last 60 Days')"   class="drp-preset-btn">Last 60 Days</button>
+                                <button onclick="window.drpPreset(90, 'Last 3 Months')"  class="drp-preset-btn drp-preset-active" id="drpPresetActive">Last 3 Months</button>
+                                <button onclick="window.drpPreset(180,'Last 6 Months')"  class="drp-preset-btn">Last 6 Months</button>
+                                <button onclick="window.drpPreset(365,'Last 12 Months')" class="drp-preset-btn">Last 12 Months</button>
+                                <button onclick="window.drpPreset(0,  'All Time')"       class="drp-preset-btn">All Time</button>
+                            </div>
+                            <!-- Custom range inputs -->
+                            <div style="border-top:1px solid var(--glass-border);padding-top:1rem;">
+                                <div style="font-size:0.65rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.6rem;">Custom Range</div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.75rem;">
+                                    <div>
+                                        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:0.3rem;">From</div>
+                                        <input type="date" id="drpFrom" style="width:100%;padding:0.4rem 0.5rem;background:#111;border:1px solid var(--glass-border);border-radius:6px;color:var(--text-main);font-family:var(--font);font-size:0.78rem;box-sizing:border-box;colorscheme:dark;">
+                                    </div>
+                                    <div>
+                                        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:0.3rem;">To</div>
+                                        <input type="date" id="drpTo" style="width:100%;padding:0.4rem 0.5rem;background:#111;border:1px solid var(--glass-border);border-radius:6px;color:var(--text-main);font-family:var(--font);font-size:0.78rem;box-sizing:border-box;colorscheme:dark;">
+                                    </div>
+                                </div>
+                                <button onclick="window.drpApplyCustom()" style="width:100%;padding:0.5rem;background:var(--accent);border:none;border-radius:8px;color:#fff;font-family:var(--font);font-size:0.82rem;font-weight:700;cursor:pointer;">Apply Custom Range</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="accountsCount" style="margin-left:auto;font-size:0.8rem;color:var(--text-muted);font-weight:600;white-space:nowrap;"></div>
+                </div>
+
+                <!-- ── TABLE VIEW ── -->
+                <div id="csTableView" style="display:block;">
+                    <div class="panel" style="padding:0;overflow:hidden;">
+                        <div style="overflow-x:auto;">
+                            <table id="csAccountTable" style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+                                <thead>
+                                    <tr style="background:rgba(255,255,255,0.03);border-bottom:1px solid var(--glass-border);">
+                                        <th style="text-align:left;padding:0.9rem 1rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);white-space:nowrap;">Account</th>
+                                        <th style="text-align:left;padding:0.9rem 1rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);white-space:nowrap;">Plan</th>
+                                        <th style="text-align:center;padding:0.9rem 0.75rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#3b82f6;white-space:nowrap;">📧 Emails</th>
+                                        <th style="text-align:center;padding:0.9rem 0.75rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#ec4899;white-space:nowrap;">↩ Replies</th>
+                                        <th style="text-align:center;padding:0.9rem 0.75rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#ec4899;white-space:nowrap;">Reply %</th>
+                                        <th style="text-align:center;padding:0.9rem 0.75rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#10b981;white-space:nowrap;">📞 Calls</th>
+                                        <th style="text-align:center;padding:0.9rem 0.75rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#10b981;white-space:nowrap;">🔗 Connects</th>
+                                        <th style="text-align:center;padding:0.9rem 0.75rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#f59e0b;white-space:nowrap;">Connect %</th>
+                                        <th style="text-align:center;padding:0.9rem 0.75rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#f59e0b;white-space:nowrap;">💬 SMS</th>
+                                        <th style="text-align:center;padding:0.9rem 0.75rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);white-space:nowrap;">Week</th>
+                                        <th style="text-align:center;padding:0.9rem 0.75rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);white-space:nowrap;">WoW Email</th>
+                                        <th style="text-align:center;padding:0.9rem 0.75rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);white-space:nowrap;">WoW Calls</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="csTableBody">
+                                    <tr><td colspan="12" style="text-align:center;padding:3rem;color:var(--text-muted);">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── CARDS VIEW ── -->
+                <div id="csCardsView" style="display:none;">
+                    <div id="accountCardsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem;">
+                        <div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--text-muted);">Loading...</div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Notes -->
+            <section id="notes" class="tab-content">
+                <div class="section-header">Scratchpad / Brainstorming</div>
+                <div class="panel">
+                    <textarea id="scratchpad" class="notes-area" placeholder="Deep work notes auto-save locally and to the cloud..." oninput="saveNote()"></textarea>
+                </div>
+            </section>
+
+            <!-- Command Center -->
+            <section id="command-center" class="tab-content">
+                <div class="dashboard-cols">
+                    <div class="panel">
+                        <div class="section-header">🤖 Autonomous Agent Fleet</div>
+                        <div id="agentsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem;"></div>
+                    </div>
+                    <div class="panel">
+                        <div class="section-header">⚖️ Decision Ledger</div>
+                        <div id="decisionsList"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Docs Portal -->
+            <section id="docs" class="tab-content">
+                <div class="section-header">Documentation Portal</div>
+                
+                <!-- Docs Tabs -->
+                <div style="display:flex;gap:0.5rem;margin-bottom:2rem;border-bottom:1px solid var(--glass-border);padding-bottom:1rem;">
+                    <button onclick="switchDocsTab('foundational')" id="docTab-foundational" style="padding:0.75rem 1.5rem;background:var(--accent);color:#fff;border:none;border-radius:4px 4px 0 0;cursor:pointer;font-weight:700;font-size:0.9rem;">⚙️ Foundational</button>
+                    <button onclick="switchDocsTab('docs')" id="docTab-docs" style="padding:0.75rem 1.5rem;background:transparent;border:1px solid var(--glass-border);color:var(--text-muted);border-radius:4px;cursor:pointer;font-weight:700;font-size:0.9rem;">📚 All Documentation</button>
+                </div>
+
+                <!-- Foundational Tab -->
+                <div id="docs-foundational" style="display:block;">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;">
+                        
+                        <!-- Skills Section -->
+                        <div class="panel">
+                            <div style="font-weight:700;font-size:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                                <span>🛠️</span> Core Skills
+                            </div>
+                            <div id="foundational-skills" style="display:grid;gap:0.75rem;">
+                                <div style="padding:0.75rem;background:rgba(168,85,247,0.05);border-radius:6px;border-left:3px solid var(--accent);">
+                                    <div style="font-weight:600;font-size:0.9rem;">coding-agent</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">Build servers, APIs, database logic</div>
+                                </div>
+                                <div style="padding:0.75rem;background:rgba(168,85,247,0.05);border-radius:6px;border-left:3px solid var(--accent);">
+                                    <div style="font-weight:600;font-size:0.9rem;">web</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">Frontend HTML, CSS, JavaScript</div>
+                                </div>
+                                <div style="padding:0.75rem;background:rgba(168,85,247,0.05);border-radius:6px;border-left:3px solid var(--accent);">
+                                    <div style="font-weight:600;font-size:0.9rem;">tailwind-v4-shadcn</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">Styling & UI components</div>
+                                </div>
+                                <div style="padding:0.75rem;background:rgba(168,85,247,0.05);border-radius:6px;border-left:3px solid var(--accent);">
+                                    <div style="font-weight:600;font-size:0.9rem;">csv-handler</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">CSV import/export & data handling</div>
+                                </div>
+                            </div>
+                            <a href="https://clawhub.ai" target="_blank" style="display:inline-block;margin-top:1rem;font-size:0.85rem;color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent);">ClawHub Registry →</a>
+                        </div>
+
+                        <!-- System Definition -->
+                        <div class="panel">
+                            <div style="font-weight:700;font-size:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                                <span>⚡</span> Identity
+                            </div>
+                            <div style="display:grid;gap:1rem;">
+                                <div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:0.25rem;">Name</div>
+                                    <div style="font-weight:700;color:var(--text-main);">Flash</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:0.25rem;">Role</div>
+                                    <div style="font-weight:700;color:var(--text-main);">Lead AI Agent</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:0.25rem;">Vibe</div>
+                                    <div style="font-weight:700;color:var(--text-main);">Sharp, organized, authoritative yet helpful</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:0.25rem;">Timezone</div>
+                                    <div style="font-weight:700;color:var(--text-main);">America/Los_Angeles</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Integrations -->
+                        <div class="panel">
+                            <div style="font-weight:700;font-size:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                                <span>🔗</span> Integrations
+                            </div>
+                            <div id="foundational-integrations" style="display:grid;gap:0.75rem;">
+                                <div style="padding:0.75rem;background:rgba(59,130,246,0.05);border-radius:6px;border-left:3px solid #3b82f6;">
+                                    <div style="font-weight:600;font-size:0.9rem;">Supabase</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">mc_state database</div>
+                                </div>
+                                <div style="padding:0.75rem;background:rgba(59,130,246,0.05);border-radius:6px;border-left:3px solid #3b82f6;">
+                                    <div style="font-weight:600;font-size:0.9rem;">Google Workspace</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">Sheets, Gmail, Drive, Calendar</div>
+                                </div>
+                                <div style="padding:0.75rem;background:rgba(59,130,246,0.05);border-radius:6px;border-left:3px solid #3b82f6;">
+                                    <div style="font-weight:600;font-size:0.9rem;">HubSpot</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">Revenue & subscription data</div>
+                                </div>
+                                <div style="padding:0.75rem;background:rgba(59,130,246,0.05);border-radius:6px;border-left:3px solid #3b82f6;">
+                                    <div style="font-weight:600;font-size:0.9rem;">Salesforce</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">CRM opportunities & pipeline</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Architecture -->
+                        <div class="panel">
+                            <div style="font-weight:700;font-size:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                                <span>🏗️</span> Architecture
+                            </div>
+                            <div style="display:grid;gap:0.75rem;font-size:0.9rem;">
+                                <div style="padding:0.75rem;background:rgba(16,185,129,0.05);border-radius:6px;border-left:3px solid #10b981;">
+                                    <div style="font-weight:600;">Backend</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">Node.js + Express</div>
+                                </div>
+                                <div style="padding:0.75rem;background:rgba(16,185,129,0.05);border-radius:6px;border-left:3px solid #10b981;">
+                                    <div style="font-weight:600;">Database</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">Supabase (PostgreSQL)</div>
+                                </div>
+                                <div style="padding:0.75rem;background:rgba(16,185,129,0.05);border-radius:6px;border-left:3px solid #10b981;">
+                                    <div style="font-weight:600;">Frontend</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">Vanilla JS + Tailwind</div>
+                                </div>
+                                <div style="padding:0.75rem;background:rgba(16,185,129,0.05);border-radius:6px;border-left:3px solid #10b981;">
+                                    <div style="font-weight:600;">Real-time</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">Socket.io WebSocket</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Key Resources -->
+                        <div class="panel">
+                            <div style="font-weight:700;font-size:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                                <span>📌</span> Key Resources
+                            </div>
+                            <div style="display:grid;gap:0.75rem;font-size:0.9rem;">
+                                <a href="https://flashclaw.flashlabs.ai" target="_blank" style="padding:0.75rem;background:rgba(168,85,247,0.05);border-radius:6px;border:1px solid var(--glass-border);color:var(--accent);text-decoration:none;display:block;">
+                                    🌐 Production Dashboard
+                                </a>
+                                <a href="http://localhost:8080" target="_blank" style="padding:0.75rem;background:rgba(168,85,247,0.05);border-radius:6px;border:1px solid var(--glass-border);color:var(--accent);text-decoration:none;display:block;">
+                                    💻 Local Dashboard
+                                </a>
+                                <a href="https://medium-last-dance-emacs.trycloudflare.com" target="_blank" style="padding:0.75rem;background:rgba(168,85,247,0.05);border-radius:6px;border:1px solid var(--glass-border);color:var(--accent);text-decoration:none;display:block;">
+                                    🔗 Cloudflare API Tunnel
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- All Documentation Tab -->
+                <div id="docs-docs" style="display:none;">
+                    <iframe src="/docs" style="width: 100%; height: 800px; border: 1px solid var(--glass-border); border-radius: 8px;"></iframe>
+                </div>
+
+            </section>
+            </section>
+
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="healthModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="healthModalTitle">Accounts</div>
+                <div class="close-modal" onclick="closeModal()">×</div>
+            </div>
+            <div class="account-list" id="healthModalList"></div>
+        </div>
+    </div>
+
+    <script>
+        let appData = { cs_data: {}, outreach: { activities: [], metrics: {}, leaderboard: [] }, intel: [], briefs: [], tasks: [], notes: "", agents: [], decisions: [], clients: [], subscriptions: [], invoices: [] };
+
+        const SUPABASE_URL = 'https://ffgrtkcabogwiwipjnqd.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZ3J0a2NhYm9nd2l3aXBqbnFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5Mzk5MzcsImV4cCI6MjA4OTUxNTkzN30.hRhRWoCMkfMuBRC1TJsxa9IhbKRsQ287t3GmoEs_RbU';
+
+        async function syncLoad() {
+            try {
+                const cacheBuster = new Date().getTime();
+                const url = `${SUPABASE_URL}/rest/v1/mc_state?id=eq.1`;
+                console.log('Fetching from:', url);
+                const res = await fetch(url, {
+                    headers: { 
+                        'apikey': SUPABASE_KEY, 
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Accept': 'application/json'
+                    }
+                });
+                console.log('API Response Status:', res.status);
+                if (!res.ok) {
+                    console.error('API Error:', res.status, res.statusText);
+                    const errorText = await res.text();
+                    console.error('Error response:', errorText);
+                    return;
+                }
+                const rows = await res.json();
+                console.log('Response received, rows:', rows.length);
+                if (rows?.[0]?.data) {
+                    appData = rows[0].data;
+                    console.log('Data loaded:', Object.keys(appData).length, 'keys');
+                    console.log('Activities count:', Object.keys(appData.activities || {}).length);
+                    renderAll();
+                } else {
+                    console.error('No data in response:', rows);
+                }
+            } catch (e) { console.error("Sync error:", e.message, e); }
+        }
+
+        async function syncSave() {
+            try {
+                await fetch(`${SUPABASE_URL}/rest/v1/mc_state?id=eq.1`, {
+                    method: 'PATCH',
+                    headers: { 
+                        'apikey': SUPABASE_KEY, 
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({ data: appData })
+                });
+            } catch (e) { console.error("Save error", e); }
+        }
+
+        function renderAll() {
+            try { renderCS(); } catch(e) { console.error('renderCS error:', e); }
+            try { renderIntel(); } catch(e) { console.error('renderIntel error:', e); }
+            try { renderBriefs(); } catch(e) { console.error('renderBriefs error:', e); }
+            try { renderKanban(); } catch(e) { console.error('renderKanban error:', e); }
+            try { renderCommand(); } catch(e) { console.error('renderCommand error:', e); }
+            try { renderActiveCustomers(); } catch(e) { console.error('renderActiveCustomers error:', e); }
+            try { renderActivities(); } catch(e) { console.error('renderActivities error:', e); }
+            try { renderAccountHealth(); } catch(e) { console.error('renderAccountHealth error:', e); }
+            try { renderCSCommand(); } catch(e) { console.error('renderCSCommand error:', e); }
+            try { document.getElementById('scratchpad').value = appData.notes || ""; } catch(e) {}
+        }
+
+        function renderIntel() {
+            const feed = document.getElementById('intelFeed');
+            if (!feed) return;
+            const intel = (appData.intel || []).slice().sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 50);
+            if (!intel.length) {
+                feed.innerHTML = '<li class="activity-item" style="color:var(--text-muted);text-align:center;padding:3rem;">No intelligence signals yet.</li>';
+                return;
+            }
+            const typeColors = { friction: '#ef4444', action_item: '#f59e0b', opportunity: '#10b981', update: '#3b82f6' };
+            feed.innerHTML = intel.map(item => {
+                const color = typeColors[item.type] || 'var(--accent)';
+                const date = item.timestamp ? new Date(item.timestamp).toLocaleString() : '';
+                const summary = (item.summary || '').substring(0, 300);
+                return `<li class="activity-item">
+                    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                        <span style="padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;text-transform:uppercase;background:${color}20;color:${color};border:1px solid ${color}40;">${item.source || item.type}</span>
+                        <span class="activity-time">${date}</span>
+                    </div>
+                    <div style="font-size:0.88rem;color:var(--text-muted);line-height:1.5;">${summary}</div>
+                </li>`;
+            }).join('');
+        }
+
+        function renderAccountHealth() {
+            const report = appData.account_health_report || {};
+            const accounts = report.accounts || [];
+            
+            // Update summary metrics
+            const statusCounts = report.by_status || {};
+            document.getElementById('health-stable').innerText = statusCounts.stable || 0;
+            document.getElementById('health-healthy').innerText = statusCounts.healthy || 0;
+            document.getElementById('health-new').innerText = statusCounts.new || 0;
+            document.getElementById('health-medium').innerText = (accounts.filter(a => a.priority === 'medium') || []).length;
+            document.getElementById('health-risk').innerText = statusCounts.at_risk || 0;
+
+            // Update snapshot info
+            updateSnapshotInfo();
+
+            // High priority accounts
+            const highPriority = accounts.filter(a => a.priority === 'high');
+            const highPriorityDiv = document.getElementById('healthHighPriority');
+            if (highPriority.length > 0) {
+                highPriorityDiv.innerHTML = highPriority.map(a => `
+                    <div style="padding:1rem;background:rgba(239,68,68,0.05);border-radius:8px;border-left:3px solid #ef4444;margin-bottom:0.75rem;">
+                        <div style="font-weight:700;color:var(--text-main);">${a.name}</div>
+                        <div style="font-size:0.85rem;color:var(--text-muted);margin-top:0.25rem;">📍 ${a.health}</div>
+                        <button onclick="editAccount('${a.name}', '${a.status}', '${a.health}')" style="margin-top:0.5rem;padding:0.5rem 1rem;background:var(--accent);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.85rem;">Edit</button>
+                    </div>
+                `).join('');
+            }
+
+            // All accounts table
+            const tbody = document.getElementById('accountHealthList');
+            if (!tbody) return;
+            
+            if (!accounts.length) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text-muted);">No account data available</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = accounts.map(a => {
+                const statusColor = a.priority === 'high' ? '#ef4444' : a.status.toLowerCase() === 'stable' ? '#10b981' : a.status.toLowerCase() === 'healthy' ? '#3b82f6' : a.status.toLowerCase() === 'new' ? '#6366f1' : '#f59e0b';
+                const statusBadgeClass = a.status.toLowerCase() === 'stable' ? 'health-stable' : a.status.toLowerCase() === 'healthy' ? 'health-healthy' : a.status.toLowerCase() === 'new' ? 'health-new' : a.priority === 'high' ? 'health-risk' : 'health-stable';
+                return `<tr>
+                    <td><strong>${a.name}</strong></td>
+                    <td><span class="health-badge ${statusBadgeClass}" style="cursor:pointer;" onclick="editAccount('${a.name}', '${a.status}', '${a.health}')">${a.status}</span></td>
+                    <td style="cursor:pointer;" onclick="editAccount('${a.name}', '${a.status}', '${a.health}')">${a.health} <span style="color:var(--accent);margin-left:0.5rem;">✏️</span></td>
+                </tr>`;
+            }).join('');
+        }
+
+        window.editAccount = function(name, status, health) {
+            const statusOptions = ['Stable', 'Healthy', 'New', 'At Risk', 'Active'];
+            
+            const modal = `
+            <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;" id="editModal">
+                <div style="background:var(--bg);border:1px solid var(--glass-border);border-radius:12px;padding:2rem;width:90%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+                    <div style="font-size:1.25rem;font-weight:700;margin-bottom:1.5rem;color:var(--text-main);">Edit Account: ${name}</div>
+                    
+                    <div style="margin-bottom:1.5rem;">
+                        <label style="display:block;font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;font-weight:600;text-transform:uppercase;">Status</label>
+                        <select id="statusEdit" style="width:100%;padding:0.75rem;background:#111;border:1px solid var(--glass-border);border-radius:6px;color:var(--text-main);font-family:var(--font);font-size:0.9rem;">
+                            ${statusOptions.map(s => `<option value="${s}" ${s === status ? 'selected' : ''}>${s}</option>`).join('')}
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom:1.5rem;">
+                        <label style="display:block;font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;font-weight:600;text-transform:uppercase;">Notes</label>
+                        <textarea id="notesEdit" style="width:100%;padding:0.75rem;background:#111;border:1px solid var(--glass-border);border-radius:6px;color:var(--text-main);font-family:var(--font);font-size:0.9rem;min-height:120px;resize:vertical;">${health}</textarea>
+                    </div>
+
+                    <div style="display:flex;gap:1rem;justify-content:flex-end;">
+                        <button onclick="document.getElementById('editModal').remove()" style="padding:0.75rem 1.5rem;background:transparent;border:1px solid var(--glass-border);color:var(--text-main);border-radius:6px;cursor:pointer;font-weight:600;">Cancel</button>
+                        <button onclick="saveAccountEdit('${name}', document.getElementById('statusEdit').value, document.getElementById('notesEdit').value)" style="padding:0.75rem 1.5rem;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modal);
+        };
+
+        window.saveAccountEdit = function(name, status, notes) {
+            // Update the account in appData
+            if (appData.account_health_report && appData.account_health_report.accounts) {
+                const account = appData.account_health_report.accounts.find(a => a.name === name);
+                if (account) {
+                    account.status = status;
+                    account.health = notes;
+                    
+                    // Save to database
+                    syncSave();
+                    
+                    // Close modal and refresh
+                    document.getElementById('editModal').remove();
+                    renderAccountHealth();
+                    
+                    // Show success message
+                    const toast = document.createElement('div');
+                    toast.textContent = `✅ ${name} updated successfully`;
+                    toast.style.cssText = 'position:fixed;bottom:2rem;right:2rem;background:var(--success);color:#fff;padding:1rem 2rem;border-radius:6px;z-index:1001;animation:slideIn 0.3s ease;';
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 3000);
+                }
+            }
+        };
+
+        window.saveHealthSnapshot = function() {
+            if (!appData.account_health_report) {
+                alert('No account data to snapshot');
+                return;
+            }
+
+            // Create snapshot with date
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            
+            const snapshot = {
+                date: dateStr,
+                time: timeStr,
+                timestamp: now.getTime(),
+                accounts: JSON.parse(JSON.stringify(appData.account_health_report.accounts || [])),
+                summary: JSON.parse(JSON.stringify(appData.account_health_report.by_status || {}))
+            };
+
+            // Initialize snapshots array if not exists
+            if (!appData.health_snapshots) {
+                appData.health_snapshots = [];
+            }
+
+            // Add new snapshot
+            appData.health_snapshots.push(snapshot);
+
+            // Keep only last 52 snapshots (1 year of weekly snapshots)
+            if (appData.health_snapshots.length > 52) {
+                appData.health_snapshots = appData.health_snapshots.slice(-52);
+            }
+
+            // Save to database
+            syncSave();
+
+            // Show success and update info
+            const toast = document.createElement('div');
+            toast.textContent = `💾 Snapshot saved for ${dateStr} at ${timeStr}`;
+            toast.style.cssText = 'position:fixed;bottom:2rem;right:2rem;background:var(--accent);color:#fff;padding:1rem 2rem;border-radius:6px;z-index:1001;';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+
+            updateSnapshotInfo();
+            renderSnapshotHistory();
+        };
+
+        window.toggleSnapshotHistory = function() {
+            const historyDiv = document.getElementById('snapshotHistory');
+            if (historyDiv.style.display === 'none') {
+                historyDiv.style.display = 'block';
+                renderSnapshotHistory();
+            } else {
+                historyDiv.style.display = 'none';
+            }
+        };
+
+        window.renderSnapshotHistory = function() {
+            if (!appData.health_snapshots || appData.health_snapshots.length === 0) {
+                document.getElementById('snapshotList').innerHTML = '<div style="color:var(--text-muted);padding:1rem;text-align:center;">No snapshots yet. Click "Save Weekly Snapshot" to create one.</div>';
+                return;
+            }
+
+            const snapshots = [...appData.health_snapshots].reverse();
+            document.getElementById('snapshotList').innerHTML = snapshots.map((snap, idx) => `
+                <div style="padding:1rem;background:rgba(255,255,255,0.05);border-radius:6px;border:1px solid var(--glass-border);display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <div style="font-weight:600;color:var(--text-main);">${snap.date} at ${snap.time}</div>
+                        <div style="font-size:0.85rem;color:var(--text-muted);margin-top:0.25rem;">
+                            Stable: ${snap.summary.stable || 0} | Healthy: ${snap.summary.healthy || 0} | New: ${snap.summary.new || 0} | At Risk: ${snap.summary.at_risk || 0}
+                        </div>
+                    </div>
+                    <button onclick="loadSnapshot(${appData.health_snapshots.length - idx - 1})" style="padding:0.5rem 1rem;background:var(--accent);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.85rem;white-space:nowrap;">Load</button>
+                </div>
+            `).join('');
+        };
+
+        window.loadSnapshot = function(index) {
+            if (!appData.health_snapshots || !appData.health_snapshots[index]) {
+                alert('Snapshot not found');
+                return;
+            }
+
+            const snapshot = appData.health_snapshots[index];
+            
+            // Restore snapshot
+            appData.account_health_report.accounts = JSON.parse(JSON.stringify(snapshot.accounts));
+            appData.account_health_report.by_status = JSON.parse(JSON.stringify(snapshot.summary));
+
+            // Close history and refresh
+            document.getElementById('snapshotHistory').style.display = 'none';
+            renderAccountHealth();
+
+            // Show confirmation
+            const toast = document.createElement('div');
+            toast.textContent = `✅ Loaded snapshot from ${snapshot.date}`;
+            toast.style.cssText = 'position:fixed;bottom:2rem;right:2rem;background:var(--success);color:#fff;padding:1rem 2rem;border-radius:6px;z-index:1001;';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        };
+
+        window.updateSnapshotInfo = function() {
+            const infoDiv = document.getElementById('snapshotInfo');
+            if (!appData.health_snapshots || appData.health_snapshots.length === 0) {
+                infoDiv.textContent = 'No snapshots saved';
+                return;
+            }
+
+            const lastSnapshot = appData.health_snapshots[appData.health_snapshots.length - 1];
+            infoDiv.textContent = `Last snapshot: ${lastSnapshot.date} | Total: ${appData.health_snapshots.length}`;
+        };
+
+        window.switchDocsTab = function(tab) {
+            // Hide all doc tabs
+            document.getElementById('docs-foundational').style.display = 'none';
+            document.getElementById('docs-docs').style.display = 'none';
+            
+            // Update button styles
+            document.getElementById('docTab-foundational').style.background = 'transparent';
+            document.getElementById('docTab-foundational').style.color = 'var(--text-muted)';
+            document.getElementById('docTab-foundational').style.border = '1px solid var(--glass-border)';
+            document.getElementById('docTab-docs').style.background = 'transparent';
+            document.getElementById('docTab-docs').style.color = 'var(--text-muted)';
+            document.getElementById('docTab-docs').style.border = '1px solid var(--glass-border)';
+            
+            // Show selected tab and highlight button
+            if (tab === 'foundational') {
+                document.getElementById('docs-foundational').style.display = 'block';
+                document.getElementById('docTab-foundational').style.background = 'var(--accent)';
+                document.getElementById('docTab-foundational').style.color = '#fff';
+                document.getElementById('docTab-foundational').style.border = 'none';
+            } else {
+                document.getElementById('docs-docs').style.display = 'block';
+                document.getElementById('docTab-docs').style.background = 'var(--accent)';
+                document.getElementById('docTab-docs').style.color = '#fff';
+                document.getElementById('docTab-docs').style.border = 'none';
+            }
+        };
+
+        function renderBriefs() {
+            const sidebar = document.getElementById('briefsSidebar');
+            const main = document.getElementById('briefsMain');
+            if (!sidebar || !main) return;
+            const briefs = appData.briefs || [];
+            if (!briefs.length) {
+                sidebar.innerHTML = '<div style="color:var(--text-muted);padding:1rem;font-size:0.9rem;">No client briefs found.</div>';
+                return;
+            }
+            // Group by client
+            const byClient = {};
+            briefs.forEach(b => {
+                const key = b.client || 'General';
+                if (!byClient[key]) byClient[key] = [];
+                byClient[key].push(b);
+            });
+            const clients = Object.keys(byClient).sort();
+            sidebar.innerHTML = clients.map(client => `
+                <div class="brief-nav-item" onclick="window.showBrief('${client.replace(/'/g, "\\'")}')">
+                    <div style="font-weight:700;font-size:0.9rem;">${client}</div>
+                    <div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem;">${byClient[client].length} brief${byClient[client].length !== 1 ? 's' : ''}</div>
+                </div>
+            `).join('');
+            window._briefsByClient = byClient;
+            // Show first client by default
+            if (clients.length) window.showBrief(clients[0]);
+        }
+
+        window.showBrief = function(client) {
+            const main = document.getElementById('briefsMain');
+            if (!main || !window._briefsByClient) return;
+            document.querySelectorAll('.brief-nav-item').forEach(el => el.classList.remove('active'));
+            const briefs = window._briefsByClient[client] || [];
+            main.innerHTML = briefs.map(b => `
+                <div class="panel" style="margin-bottom:1.5rem;padding:1.75rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
+                        <div>
+                            <div style="font-weight:800;font-size:1.05rem;">${b.subject || b.client}</div>
+                            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;">${b.date || ''}</div>
+                        </div>
+                        ${b.shareLink ? `<a href="${b.shareLink}" target="_blank" style="font-size:0.75rem;color:var(--accent);text-decoration:none;padding:4px 10px;border:1px solid var(--accent);border-radius:6px;">Share ↗</a>` : ''}
+                    </div>
+                    <div style="font-size:0.9rem;color:var(--text-muted);line-height:1.6;white-space:pre-wrap;">${(b.content || '').substring(0, 1000)}</div>
+                    ${b.link ? `<a href="${b.link}" target="_blank" style="display:inline-block;margin-top:1rem;font-size:0.8rem;color:var(--accent);">Open Full Brief ↗</a>` : ''}
+                </div>
+            `).join('') || '<div style="color:var(--text-muted);padding:3rem;text-align:center;">No briefs for this client.</div>';
+        };
+
+        function renderKanban() {
+            const tasks = appData.tasks || [];
+            const cols = { backlog: [], progress: [], done: [] };
+            const statusMap = { 'backlog': 'backlog', 'todo': 'backlog', 'in progress': 'progress', 'in-progress': 'progress', 'done': 'done', 'completed': 'done' };
+            tasks.forEach(t => {
+                const key = statusMap[(t.status || '').toLowerCase()] || 'backlog';
+                cols[key].push(t);
+            });
+            const priorityColor = { high: '#ef4444', medium: '#f59e0b', low: '#10b981' };
+            const renderCol = (items) => items.length ? items.map(t => `
+                <div class="task-card">
+                    <div style="font-weight:700;font-size:0.9rem;">${t.title || 'Untitled'}</div>
+                    <div class="task-meta">
+                        ${t.priority ? `<span style="color:${priorityColor[t.priority?.toLowerCase()] || 'var(--text-muted)'};font-weight:700;text-transform:uppercase;font-size:0.65rem;">${t.priority}</span>` : ''}
+                        ${t.due ? `<span>Due: ${t.due}</span>` : ''}
+                    </div>
+                </div>`).join('') : '<div style="color:var(--text-muted);text-align:center;padding:2rem;font-size:0.85rem;">Empty</div>';
+            const b = document.getElementById('col-backlog'); if (b) b.innerHTML = renderCol(cols.backlog);
+            const p = document.getElementById('col-progress'); if (p) p.innerHTML = renderCol(cols.progress);
+            const d = document.getElementById('col-done'); if (d) d.innerHTML = renderCol(cols.done);
+        }
+
+        function renderCommand() {
+            const agentsEl = document.getElementById('agentsGrid');
+            const decisionsEl = document.getElementById('decisionsList');
+            const agents = appData.agents || [];
+            const decisions = appData.decisions || [];
+            if (agentsEl) {
+                agentsEl.innerHTML = agents.length ? agents.map(a => `
+                    <div class="panel" style="padding:1.25rem;text-align:center;">
+                        <div style="font-size:2rem;margin-bottom:0.5rem;">${a.emoji || '🤖'}</div>
+                        <div style="font-weight:700;">${a.name || 'Agent'}</div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;">${a.status || 'Active'}</div>
+                    </div>`).join('') : '<div style="color:var(--text-muted);text-align:center;padding:3rem;grid-column:1/-1;">No agents configured.</div>';
+            }
+            if (decisionsEl) {
+                decisionsEl.innerHTML = decisions.length ? decisions.map(d => `
+                    <div class="activity-item">
+                        <div style="font-weight:700;">${d.title || d}</div>
+                        ${d.date ? `<div class="activity-time">${d.date}</div>` : ''}
+                    </div>`).join('') : '<div style="color:var(--text-muted);text-align:center;padding:3rem;">No decisions logged.</div>';
+            }
+        }
+
+        function renderActiveCustomers() {
+            const tbody = document.getElementById('activeCustomerList');
+            const countEl = document.getElementById('count-active-subs');
+            const mrrEl = document.getElementById('total-mrr');
+            const unpaidEl = document.getElementById('unpaid-invoices');
+            const subs = appData.subscriptions || [];
+            const invoices = appData.invoices || [];
+            if (countEl) countEl.innerText = subs.filter(s => (s.status || '').toLowerCase() === 'active').length;
+            if (mrrEl) {
+                const totalMRR = subs.reduce((sum, s) => sum + (parseFloat(String(s.mrr || 0).replace(/[^0-9.]/g, '')) || 0), 0);
+                mrrEl.innerText = '$' + Math.round(totalMRR).toLocaleString();
+            }
+            if (unpaidEl) unpaidEl.innerText = invoices.filter(i => (i.status || '').toLowerCase() === 'unpaid').length;
+            if (!tbody) return;
+            if (!subs.length) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:4rem;color:var(--text-muted);">No active subscriptions found.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = subs.map(s => `
+                <tr>
+                    <td style="font-weight:700;">${s.customer || s.name || '—'}</td>
+                    <td style="color:var(--text-muted);font-size:0.85rem;">${s.name || '—'}</td>
+                    <td><span class="status-badge status-active">${s.status || 'active'}</span></td>
+                    <td class="mrr-pill">$${parseFloat(String(s.mrr || 0).replace(/[^0-9.]/g, '')).toLocaleString()}</td>
+                    <td style="color:var(--text-muted);">$${parseFloat(String(s.arr || 0).replace(/[^0-9.]/g, '')).toLocaleString()}</td>
+                    <td style="color:var(--text-muted);font-size:0.85rem;">${s.start_date || '—'}</td>
+                    <td style="color:var(--text-muted);font-size:0.85rem;">${s.next_due || '—'}</td>
+                </tr>`).join('');
+        }
+
+        function renderActivities() {
+            try { filterAndRenderActivities(); } catch(e) { console.error('renderActivities error:', e); }
+        }
+
+        // ── VIEW TOGGLE ──
+        window.csCurrentView = 'table';
+
+        // ── DATE RANGE — initialise FIRST so filterAndRenderActivities always has a valid range ──
+        (function initDateRange() {
+            const now = new Date();
+            window._dateRange = {
+                start: new Date(now.getFullYear(), now.getMonth() - 3, now.getDate()),
+                end:   new Date(now.getFullYear(), now.getMonth(),     now.getDate())
+            };
+        })();
+        window.csSetView = function(view) {
+            window.csCurrentView = view;
+            document.getElementById('csTableView').style.display = view === 'table' ? 'block' : 'none';
+            document.getElementById('csCardsView').style.display  = view === 'cards' ? 'block' : 'none';
+            document.getElementById('viewBtn-table').style.background = view === 'table' ? 'var(--accent)' : 'transparent';
+            document.getElementById('viewBtn-table').style.color      = view === 'table' ? '#fff' : 'var(--text-muted)';
+            document.getElementById('viewBtn-cards').style.background = view === 'cards' ? 'var(--accent)' : 'transparent';
+            document.getElementById('viewBtn-cards').style.color      = view === 'cards' ? '#fff' : 'var(--text-muted)';
+        };
+
+        // ── DATE RANGE PICKER ──
+        (function() {
+            window.drpToggle = function(e) {
+                e.stopPropagation();
+                const popup = document.getElementById('drpPopup');
+                popup.style.display = popup.style.display !== 'none' ? 'none' : 'block';
+            };
+
+            window.drpPreset = function(days, label) {
+                const now = new Date();
+                const end   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const start = days === 0
+                    ? new Date(2020, 0, 1)
+                    : new Date(now.getFullYear(), now.getMonth(), now.getDate() - days);
+                window._dateRange = { start, end };
+                document.getElementById('drpLabel').textContent = label;
+                // Highlight active preset
+                document.querySelectorAll('.drp-preset-btn').forEach(b => b.classList.remove('drp-preset-active'));
+                event.target.classList.add('drp-preset-active');
+                // Sync date inputs
+                document.getElementById('drpFrom').value = _fmt(start);
+                document.getElementById('drpTo').value   = _fmt(end);
+                document.getElementById('drpPopup').style.display = 'none';
+                filterAndRenderActivities();
+            };
+
+            window.drpApplyCustom = function() {
+                const fromVal = document.getElementById('drpFrom').value;
+                const toVal   = document.getElementById('drpTo').value;
+                if (!fromVal || !toVal) return;
+                const start = new Date(fromVal + 'T00:00:00');
+                const end   = new Date(toVal   + 'T23:59:59');
+                if (isNaN(start) || isNaN(end)) return;
+                if (start > end) { alert('From date must be before To date.'); return; }
+                window._dateRange = { start, end };
+                const fmt = d => d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+                document.getElementById('drpLabel').textContent = fmt(start) + ' – ' + fmt(end);
+                document.querySelectorAll('.drp-preset-btn').forEach(b => b.classList.remove('drp-preset-active'));
+                document.getElementById('drpPopup').style.display = 'none';
+                filterAndRenderActivities();
+            };
+
+            function _fmt(d) {
+                const y = d.getFullYear();
+                const m = String(d.getMonth()+1).padStart(2,'0');
+                const day = String(d.getDate()).padStart(2,'0');
+                return y + '-' + m + '-' + day;
+            }
+
+            // Pre-fill inputs with current range
+            const r = window._dateRange;
+            if (r && r.start && r.end) {
+                document.addEventListener('DOMContentLoaded', function() {
+                    const f = document.getElementById('drpFrom');
+                    const t = document.getElementById('drpTo');
+                    if (f) f.value = _fmt(r.start);
+                    if (t) t.value = _fmt(r.end);
+                });
+            }
+
+            // Close on outside click
+            document.addEventListener('click', function(e) {
+                const popup = document.getElementById('drpPopup');
+                const btn   = document.getElementById('dateRangeBtn');
+                if (popup && popup.style.display !== 'none' && btn && !popup.contains(e.target) && !btn.contains(e.target)) {
+                    popup.style.display = 'none';
+                }
+            });
+        })();
+
+
+        function filterAndRenderActivities() {
+            try {
+                const activityTypeFilter = document.getElementById('activityTypeFilter')?.value || 'all';
+                const sortByFilter       = document.getElementById('sortByFilter')?.value       || 'emails';
+                const sortOrderFilter    = document.getElementById('sortOrderFilter')?.value    || 'desc';
+                const searchQuery        = (document.getElementById('csSearchInput')?.value     || '').toLowerCase().trim();
+
+                // Always use window._dateRange — initialised at startup, updated by date picker
+                const now     = new Date();
+                const r       = window._dateRange || {};
+                const cutoff  = r.start instanceof Date ? r.start : new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+                const ceiling = r.end   instanceof Date ? r.end   : now;
+
+                const activities = appData.activities || {};
+                const accountsList = [];
+
+                Object.entries(activities).forEach(([companyId, company]) => {
+                    if (!company.weekly || !company.weekly.length) return;
+                    const recentWeekly = company.weekly.filter(w => {
+                        const d = new Date(w.week);
+                        return d >= cutoff && d <= ceiling;
+                    });
+                    if (!recentWeekly.length) return;
+
+                    const sorted = [...recentWeekly].sort((a,b) => new Date(b.week) - new Date(a.week));
+                    const lw = sorted[0];
+                    const pw = sorted[1] || null;
+
+                    const latestEmails   = lw.email?.sent          || 0;
+                    const latestReplies  = lw.email?.replied        || 0;
+                    const latestCalls    = lw.call?.outbound        || 0;
+                    const latestConnects = lw.call?.connects        || 0;
+                    const latestSMS      = lw.messages?.sms_sent   || 0;
+
+                    const replyRate   = latestEmails > 0 ? Math.round((latestReplies  / latestEmails)  * 100) : 0;
+                    const connectRate = latestCalls  > 0 ? Math.round((latestConnects / latestCalls)   * 100) : 0;
+
+                    const emailChange = pw ? latestEmails - (pw.email?.sent       || 0) : null;
+                    const callChange  = pw ? latestCalls  - (pw.call?.outbound    || 0) : null;
+
+                    if (latestEmails + latestCalls + latestSMS === 0) return;
+                    if (activityTypeFilter === 'emails' && latestEmails === 0) return;
+                    if (activityTypeFilter === 'calls'  && latestCalls  === 0) return;
+                    if (activityTypeFilter === 'sms'    && latestSMS    === 0) return;
+
+                    const name = (company.company_name || `Account ${companyId}`).toLowerCase();
+                    if (searchQuery && !name.includes(searchQuery)) return;
+
+                    accountsList.push({
+                        companyId,
+                        companyName: company.company_name || `Account ${companyId}`,
+                        plan: company.plan || '',
+                        latestWeekLabel: lw.week,
+                        latestEmails, latestReplies, latestCalls, latestConnects, latestSMS,
+                        replyRate, connectRate, emailChange, callChange,
+                        weekly: recentWeekly
+                    });
+                });
+
+                accountsList.sort((a, b) => {
+                    let av, bv;
+                    if      (sortByFilter === 'emails')      { av = a.latestEmails;   bv = b.latestEmails; }
+                    else if (sortByFilter === 'calls')       { av = a.latestCalls;    bv = b.latestCalls; }
+                    else if (sortByFilter === 'sms')         { av = a.latestSMS;      bv = b.latestSMS; }
+                    else if (sortByFilter === 'connectRate') { av = a.connectRate;    bv = b.connectRate; }
+                    else if (sortByFilter === 'replyRate')   { av = a.replyRate;      bv = b.replyRate; }
+                    else                                     { av = a.latestEmails;   bv = b.latestEmails; }
+                    return sortOrderFilter === 'desc' ? bv - av : av - bv;
+                });
+
+                const countEl = document.getElementById('accountsCount');
+                if (countEl) countEl.innerText = `${accountsList.length} accounts`;
+
+                renderTableView(accountsList);
+                renderCardsView(accountsList);
+
+            } catch(e) { console.error('filterAndRenderActivities error:', e); }
+        }
+
+        function renderTableView(list) {
+            const tbody = document.getElementById('csTableBody');
+            if (!tbody) return;
+            if (!list.length) {
+                tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:3rem;color:var(--text-muted);">No accounts match filters.</td></tr>';
+                return;
+            }
+            const d = (val) => {
+                if (val === null) return '<span style="color:rgba(255,255,255,0.15)">—</span>';
+                const c = val > 0 ? '#10b981' : val < 0 ? '#ef4444' : 'var(--text-muted)';
+                const arrow = val > 0 ? '▲' : val < 0 ? '▼' : '–';
+                return `<span style="color:${c};font-weight:700;">${arrow} ${Math.abs(val).toLocaleString()}</span>`;
+            };
+            const badge = (rate, color) =>
+                `<span style="padding:2px 7px;border-radius:4px;font-size:0.72rem;font-weight:800;background:${color}18;color:${color};border:1px solid ${color}40;">${rate}%</span>`;
+
+            tbody.innerHTML = list.map(a => `
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background 0.15s;"
+                    onmouseover="this.style.background='rgba(168,85,247,0.04)'"
+                    onmouseout="this.style.background=''"
+                    onclick="window.redirectToAccountDetails(${JSON.stringify(a).replace(/"/g,'&quot;')})">
+                    <td style="padding:0.85rem 1rem;">
+                        <div style="font-weight:700;color:var(--text-main);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;">${a.companyName}</div>
+                        <div style="font-size:0.62rem;color:var(--accent);margin-top:2px;">📅 ${a.latestWeekLabel}</div>
+                    </td>
+                    <td style="padding:0.85rem 0.75rem;color:var(--text-muted);font-size:0.75rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.plan.substring(0,28)}</td>
+                    <td style="padding:0.85rem 0.75rem;text-align:center;font-weight:700;color:#3b82f6;">${a.latestEmails.toLocaleString()}</td>
+                    <td style="padding:0.85rem 0.75rem;text-align:center;color:#ec4899;">${a.latestReplies.toLocaleString()}</td>
+                    <td style="padding:0.85rem 0.75rem;text-align:center;">${badge(a.replyRate,'#ec4899')}</td>
+                    <td style="padding:0.85rem 0.75rem;text-align:center;font-weight:700;color:#10b981;">${a.latestCalls.toLocaleString()}</td>
+                    <td style="padding:0.85rem 0.75rem;text-align:center;color:#10b981;">${a.latestConnects.toLocaleString()}</td>
+                    <td style="padding:0.85rem 0.75rem;text-align:center;">${badge(a.connectRate,'#f59e0b')}</td>
+                    <td style="padding:0.85rem 0.75rem;text-align:center;color:#f59e0b;">${a.latestSMS > 0 ? a.latestSMS.toLocaleString() : '<span style=\"color:rgba(255,255,255,0.15)\">—</span>'}</td>
+                    <td style="padding:0.85rem 0.75rem;text-align:center;">${d(a.emailChange)}</td>
+                    <td style="padding:0.85rem 0.75rem;text-align:center;">${d(a.callChange)}</td>
+                </tr>`).join('');
+        }
+
+        function renderCardsView(list) {
+            const grid = document.getElementById('accountCardsGrid');
+            if (!grid) return;
+            if (!list.length) {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--text-muted);">No accounts match filters.</div>';
+                return;
+            }
+            const chip = (val, label) => {
+                if (!val) return '';
+                const c = val > 0 ? '#10b981' : '#ef4444';
+                const a = val > 0 ? '▲' : '▼';
+                return `<span style="font-size:0.63rem;padding:2px 5px;border-radius:4px;background:${c}18;color:${c};border:1px solid ${c}30;font-weight:700;">${a}${Math.abs(val)} ${label}</span>`;
+            };
+            grid.innerHTML = list.map(a => {
+                const cc = a.connectRate >= 10 ? '#10b981' : a.connectRate >= 3 ? '#f59e0b' : '#ef4444';
+                return `<div class="panel" style="padding:1.25rem;cursor:pointer;border-left:3px solid var(--accent);display:flex;flex-direction:column;gap:0.85rem;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background=''"
+                    onclick="window.redirectToAccountDetails(${JSON.stringify(a).replace(/"/g,'&quot;')})">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;">
+                        <div style="min-width:0;">
+                            <div style="font-weight:800;font-size:0.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.companyName}</div>
+                            <div style="font-size:0.65rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;">${a.plan.substring(0,36)}</div>
+                        </div>
+                        <div style="font-size:0.62rem;color:var(--accent);font-weight:600;flex-shrink:0;">📅 ${a.latestWeekLabel}</div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.55rem;">
+                        <div style="background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:0.65rem 0.85rem;">
+                            <div style="font-size:0.58rem;color:#3b82f6;font-weight:700;text-transform:uppercase;margin-bottom:0.25rem;">📧 Emails</div>
+                            <div style="font-size:1.35rem;font-weight:800;color:#3b82f6;line-height:1;">${a.latestEmails.toLocaleString()}</div>
+                            <div style="display:flex;justify-content:space-between;margin-top:0.25rem;">
+                                <span style="font-size:0.6rem;color:var(--text-muted);">${a.latestReplies} replies</span>
+                                <span style="font-size:0.65rem;font-weight:700;color:#ec4899;">${a.replyRate}%</span>
+                            </div>
+                        </div>
+                        <div style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:0.65rem 0.85rem;">
+                            <div style="font-size:0.58rem;color:#10b981;font-weight:700;text-transform:uppercase;margin-bottom:0.25rem;">📞 Calls</div>
+                            <div style="font-size:1.35rem;font-weight:800;color:#10b981;line-height:1;">${a.latestCalls.toLocaleString()}</div>
+                            <div style="display:flex;justify-content:space-between;margin-top:0.25rem;">
+                                <span style="font-size:0.6rem;color:var(--text-muted);">${a.latestConnects} connects</span>
+                                <span style="font-size:0.65rem;font-weight:700;color:#f59e0b;">${a.connectRate}%</span>
+                            </div>
+                        </div>
+                        <div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:0.65rem 0.85rem;">
+                            <div style="font-size:0.58rem;color:#f59e0b;font-weight:700;text-transform:uppercase;margin-bottom:0.25rem;">💬 SMS</div>
+                            <div style="font-size:1.35rem;font-weight:800;color:${a.latestSMS > 0 ? '#f59e0b' : 'rgba(255,255,255,0.15)'};line-height:1;">${a.latestSMS > 0 ? a.latestSMS.toLocaleString() : '—'}</div>
+                            <div style="margin-top:0.25rem;font-size:0.6rem;color:var(--text-muted);">this week</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--glass-border);border-radius:8px;padding:0.65rem 0.85rem;">
+                            <div style="font-size:0.58rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:0.25rem;">🔗 Connect Rate</div>
+                            <div style="font-size:1.35rem;font-weight:800;color:${cc};line-height:1;">${a.connectRate}%</div>
+                            <div style="margin-top:0.25rem;font-size:0.6rem;color:var(--text-muted);">${a.latestConnects}/${a.latestCalls} calls</div>
+                        </div>
+                    </div>
+                    ${(a.emailChange || a.callChange) ? `<div style="display:flex;gap:0.4rem;flex-wrap:wrap;">${chip(a.emailChange,'email')}${chip(a.callChange,'calls')}</div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        window.redirectToAccountDetails = (accountData) => {
+            const account = typeof accountData === 'string' ? JSON.parse(accountData.replace(/&quot;/g, '"')) : accountData;
+            sessionStorage.setItem('accountDetailsData', JSON.stringify(account));
+            window.location.href = '/account-details.html';
+        };
+
+        function renderCS() {
+            const om = appData.outreach?.metrics || { total: 0, response_rate: "0%", active_prospects: 0 };
+            document.getElementById('total-activities').innerText = om.total;
+            document.getElementById('avg-response-rate').innerText = om.response_rate;
+            document.getElementById('active-prospects').innerText = om.active_prospects;
+
+            const ledger = document.getElementById('outreachLedger');
+            if(ledger) {
+                const activities = appData.outreach?.activities || [];
+                ledger.innerHTML = activities.length ? activities.map(a => `
+                    <tr>
+                        <td style="font-weight:700;">${a.account}</td>
+                        <td style="color:var(--text-muted);">${new Date(a.last_activity).toLocaleDateString()}</td>
+                        <td><span class="type-pill">${a.type.toUpperCase()}</span></td>
+                        <td>${a.csm}</td>
+                        <td style="font-size:0.8rem; color:var(--text-muted);">${a.sequence}</td>
+                    </tr>`).join('') : '<tr><td colspan="5" style="text-align:center; padding: 4rem; color: var(--text-muted);">Awaiting Outreach spreadsheet upload...</td></tr>';
+            }
+
+            const leaderboard = document.getElementById('csmLeaderboard');
+            if(leaderboard) {
+                const team = appData.outreach?.leaderboard || [];
+                leaderboard.innerHTML = team.length ? team.map((c, i) => `
+                    <li class="activity-item" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:1rem;">
+                            <div style="font-size:1.2rem; font-weight:800; color:var(--accent); min-width:25px;">#${i+1}</div>
+                            <div style="font-weight:700;">${c.name}</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-weight:800; color:var(--text-main);">${c.total}</div>
+                            <div style="font-size:0.7rem; color:var(--text-muted);">Activities</div>
+                        </div>
+                    </li>`).join('') : '<li class="activity-item" style="color:var(--text-muted); text-align:center; padding: 3rem;">No activity data found.</li>';
+            }
+        }
+
+        // CS COMMAND CENTER - ACCOUNT HEALTH & CHANGES
+        
+        function renderCSCommand() {
+            try {
+                const activities = appData.activities || {};
+                const now = new Date();
+                // CS Command header metrics always use fixed 4-week window
+                const fourWeeksAgo = new Date(); fourWeeksAgo.setDate(now.getDate() - 28);
+                const threeWeeksAgo = new Date(); threeWeeksAgo.setDate(now.getDate() - 21);
+
+                // Build per-company 4-week stats
+                const companyStats = [];
+                Object.entries(activities).forEach(([companyId, company]) => {
+                    if (!company.weekly || !company.weekly.length) return;
+                    const recent4 = company.weekly.filter(w => new Date(w.week) >= fourWeeksAgo);
+                    if (!recent4.length) return;
+                    const totalEmails = recent4.reduce((s, w) => s + (w.email?.sent || 0), 0);
+                    const totalCalls    = recent4.reduce((s, w) => s + (w.call?.outbound  || 0), 0);
+                    const totalConnects = recent4.reduce((s, w) => s + (w.call?.connects  || 0), 0);
+                    const totalSMS      = recent4.reduce((s, w) => s + (w.messages?.sms_sent || 0), 0);
+                    const totalReplied  = recent4.reduce((s, w) => s + (w.email?.replied   || 0), 0);
+                    const totalSent     = recent4.reduce((s, w) => s + (w.email?.sent      || 0), 0);
+                    const replyRate   = totalSent  > 0 ? Math.round((totalReplied  / totalSent)    * 100) : 0;
+                    const connectRate = totalCalls > 0 ? Math.round((totalConnects / totalCalls)   * 100) : 0;
+                    companyStats.push({ companyId, companyName: company.company_name || `Account ${companyId}`, plan: company.plan || '', totalEmails, totalCalls, totalConnects, totalSMS, replyRate, connectRate, recent4 });
+                });
+
+                // Populate header metrics
+                const activeEl = document.getElementById('csMetric-activeCompanies');
+                const emailEl = document.getElementById('csMetric-avgEmails');
+                const callEl = document.getElementById('csMetric-avgCalls');
+                const replyEl = document.getElementById('csMetric-replyRate');
+                const connectRateEl = document.getElementById('csMetric-avgConnectRate');
+                if (activeEl) activeEl.innerText = companyStats.length;
+                if (emailEl) emailEl.innerText = companyStats.length ? Math.round(companyStats.reduce((s,c)=>s+c.totalEmails,0)/companyStats.length/4) : 0;
+                if (callEl) callEl.innerText = companyStats.length ? Math.round(companyStats.reduce((s,c)=>s+c.totalCalls,0)/companyStats.length/4) : 0;
+                if (replyEl) replyEl.innerText = companyStats.length ? Math.round(companyStats.reduce((s,c)=>s+c.replyRate,0)/companyStats.length) + '%' : '0%';
+                if (connectRateEl) {
+                    const totalCalls4w = companyStats.reduce((s,c)=>s+c.totalCalls,0);
+                    const totalConnects4w = companyStats.reduce((s,c)=>s+c.totalConnects,0);
+                    connectRateEl.innerText = totalCalls4w > 0 ? Math.round((totalConnects4w/totalCalls4w)*100) + '%' : '0%';
+                }
+
+                // Top Performers — sorted by emails
+                const topEl = document.getElementById('csTop-performers');
+                if (topEl) {
+                    const top5 = [...companyStats].sort((a,b) => b.totalEmails - a.totalEmails).slice(0,5);
+                    topEl.innerHTML = top5.length ? top5.map(c => `
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15);border-radius:8px;">
+                            <div><div style="font-weight:700;font-size:0.9rem;">${c.companyName}</div><div style="font-size:0.7rem;color:var(--text-muted);">${c.plan.substring(0,35)}</div></div>
+                            <div style="display:flex;gap:1rem;align-items:center;">
+                                <div style="text-align:center;"><div style="font-weight:800;color:#3b82f6;font-size:0.9rem;">${c.totalEmails.toLocaleString()}</div><div style="font-size:0.6rem;color:var(--text-muted);">📧 Email</div></div>
+                                <div style="text-align:center;"><div style="font-weight:800;color:#10b981;font-size:0.9rem;">${c.totalCalls.toLocaleString()}</div><div style="font-size:0.6rem;color:var(--text-muted);">📞 Calls</div></div>
+                                ${c.totalSMS > 0 ? `<div style="text-align:center;"><div style="font-weight:800;color:#f59e0b;font-size:0.9rem;">${c.totalSMS.toLocaleString()}</div><div style="font-size:0.6rem;color:var(--text-muted);">💬 SMS</div></div>` : ''}
+                            </div>
+                        </div>`).join('') : '<div style="color:var(--text-muted);text-align:center;padding:2rem;">No data</div>';
+                }
+
+                // Low Activity — sorted by emails asc
+                const lowEl = document.getElementById('csLow-activity');
+                if (lowEl) {
+                    const low5 = [...companyStats].sort((a,b) => a.totalEmails - b.totalEmails).slice(0,5);
+                    lowEl.innerHTML = low5.length ? low5.map(c => `
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.15);border-radius:8px;">
+                            <div><div style="font-weight:700;font-size:0.9rem;">${c.companyName}</div><div style="font-size:0.7rem;color:var(--text-muted);">${c.plan.substring(0,35)}</div></div>
+                            <div style="display:flex;gap:1rem;align-items:center;">
+                                <div style="text-align:center;"><div style="font-weight:800;color:#3b82f6;font-size:0.9rem;">${c.totalEmails.toLocaleString()}</div><div style="font-size:0.6rem;color:var(--text-muted);">📧 Email</div></div>
+                                <div style="text-align:center;"><div style="font-weight:800;color:#10b981;font-size:0.9rem;">${c.totalCalls.toLocaleString()}</div><div style="font-size:0.6rem;color:var(--text-muted);">📞 Calls</div></div>
+                                ${c.totalSMS > 0 ? `<div style="text-align:center;"><div style="font-weight:800;color:#f59e0b;font-size:0.9rem;">${c.totalSMS.toLocaleString()}</div><div style="font-size:0.6rem;color:var(--text-muted);">💬 SMS</div></div>` : ''}
+                            </div>
+                        </div>`).join('') : '<div style="color:var(--text-muted);text-align:center;padding:2rem;">No data</div>';
+                }
+
+                // Segments — email / call / sms tiers separately
+                const segEl = document.getElementById('csSegments');
+                if (segEl) {
+                    const emailHigh = companyStats.filter(c => c.totalEmails > 1000).length;
+                    const emailMed  = companyStats.filter(c => c.totalEmails > 100 && c.totalEmails <= 1000).length;
+                    const emailLow  = companyStats.filter(c => c.totalEmails <= 100).length;
+                    const callHigh  = companyStats.filter(c => c.totalCalls > 1000).length;
+                    const callMed   = companyStats.filter(c => c.totalCalls > 100 && c.totalCalls <= 1000).length;
+                    const callLow   = companyStats.filter(c => c.totalCalls <= 100).length;
+                    const smsActive = companyStats.filter(c => c.totalSMS > 0).length;
+                    segEl.innerHTML = `
+                        <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.5rem;">📧 Email</div>
+                        ${[{l:'High (>1K)',n:emailHigh,c:'#10b981'},{l:'Medium (100–1K)',n:emailMed,c:'#f59e0b'},{l:'Low (<100)',n:emailLow,c:'#ef4444'}].map(s=>`
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0.75rem;background:${s.c}10;border:1px solid ${s.c}30;border-radius:6px;margin-bottom:0.4rem;">
+                            <div style="font-size:0.82rem;font-weight:600;">${s.l}</div>
+                            <div style="font-weight:800;color:${s.c};">${s.n}</div>
+                        </div>`).join('')}
+                        <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin:0.75rem 0 0.5rem;">📞 Calls</div>
+                        ${[{l:'High (>1K)',n:callHigh,c:'#10b981'},{l:'Medium (100–1K)',n:callMed,c:'#f59e0b'},{l:'Low (<100)',n:callLow,c:'#ef4444'}].map(s=>`
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0.75rem;background:${s.c}10;border:1px solid ${s.c}30;border-radius:6px;margin-bottom:0.4rem;">
+                            <div style="font-size:0.82rem;font-weight:600;">${s.l}</div>
+                            <div style="font-weight:800;color:${s.c};">${s.n}</div>
+                        </div>`).join('')}
+                        <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin:0.75rem 0 0.5rem;">💬 SMS</div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0.75rem;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:6px;">
+                            <div style="font-size:0.82rem;font-weight:600;">Active (>0 SMS)</div>
+                            <div style="font-weight:800;color:#f59e0b;">${smsActive}</div>
+                        </div>`;
+                }
+
+                // Build WoW changes for the changes table + trend chart
+                const companyMetrics = [];
+
+                Object.entries(activities).forEach(([companyId, company]) => {
+                    if (!company.weekly || company.weekly.length < 2) return;
+                    
+                    const recentWeeks = company.weekly.filter(w => new Date(w.week) >= threeWeeksAgo);
+                    if (recentWeeks.length < 2) return;
+                    
+                    const weeks = recentWeeks;
+                    const prevWeek = weeks[weeks.length - 2];
+                    const currWeek = weeks[weeks.length - 1];
+                    
+                    const prevEmails = prevWeek.email?.sent || 0;
+                    const currEmails = currWeek.email?.sent || 0;
+                    const prevCalls  = prevWeek.call?.outbound || 0;
+                    const currCalls  = currWeek.call?.outbound || 0;
+                    const prevSMS    = prevWeek.messages?.sms_sent || 0;
+                    const currSMS    = currWeek.messages?.sms_sent || 0;
+
+                    const emailChange = currEmails - prevEmails;
+                    const callChange  = currCalls  - prevCalls;
+                    const smsChange   = currSMS    - prevSMS;
+
+                    // Skip rows with zero change across all channels
+                    if (emailChange === 0 && callChange === 0 && smsChange === 0) return;
+
+                    let companyName = company.company_name;
+                    if (!companyName || companyName.trim() === '' || companyName === 'Unknown') {
+                        companyName = `Account ${companyId}`;
+                    }
+
+                    companyMetrics.push({
+                        companyId, companyName, plan: company.plan || '',
+                        prevWeek: prevWeek.week, currWeek: currWeek.week,
+                        prevEmails, currEmails, emailChange,
+                        prevCalls,  currCalls,  callChange,
+                        prevSMS,    currSMS,    smsChange,
+                        absEmailChange: Math.abs(emailChange),
+                        absCallChange:  Math.abs(callChange),
+                        absSmsChange:   Math.abs(smsChange)
+                    });
+                });
+
+                let container = document.getElementById('csCommandTable');
+
+                // Populate WoW Changes section — email / calls / SMS separated, no combined
+                const changesEl = document.getElementById('csChanges');
+                const sorted = [...companyMetrics].sort((a, b) => b.absEmailChange - a.absEmailChange);
+                if (changesEl) {
+                    changesEl.innerHTML = sorted.length ? sorted.slice(0, 20).map(c => {
+                        const emailColor = c.emailChange >= 0 ? '#10b981' : '#ef4444';
+                        const callColor  = c.callChange  >= 0 ? '#10b981' : '#ef4444';
+                        const smsColor   = c.smsChange   >= 0 ? '#10b981' : '#ef4444';
+                        return `
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1rem;background:rgba(255,255,255,0.02);border:1px solid var(--glass-border);border-radius:8px;">
+                                <div style="min-width:180px;"><div style="font-weight:700;font-size:0.9rem;">${c.companyName}</div><div style="font-size:0.68rem;color:var(--text-muted);">${c.prevWeek} → ${c.currWeek}</div></div>
+                                <div style="display:flex;gap:1.5rem;align-items:center;">
+                                    <div style="text-align:center;min-width:70px;">
+                                        <div style="font-size:0.78rem;color:var(--text-muted);">${c.prevEmails}→${c.currEmails}</div>
+                                        <div style="font-size:0.75rem;font-weight:700;color:${emailColor};">${c.emailChange>=0?'+':''}${c.emailChange}</div>
+                                        <div style="font-size:0.6rem;color:var(--text-muted);">📧 Email</div>
+                                    </div>
+                                    <div style="text-align:center;min-width:70px;">
+                                        <div style="font-size:0.78rem;color:var(--text-muted);">${c.prevCalls}→${c.currCalls}</div>
+                                        <div style="font-size:0.75rem;font-weight:700;color:${callColor};">${c.callChange>=0?'+':''}${c.callChange}</div>
+                                        <div style="font-size:0.6rem;color:var(--text-muted);">📞 Calls</div>
+                                    </div>
+                                    ${(c.prevSMS > 0 || c.currSMS > 0) ? `
+                                    <div style="text-align:center;min-width:70px;">
+                                        <div style="font-size:0.78rem;color:var(--text-muted);">${c.prevSMS}→${c.currSMS}</div>
+                                        <div style="font-size:0.75rem;font-weight:700;color:${smsColor};">${c.smsChange>=0?'+':''}${c.smsChange}</div>
+                                        <div style="font-size:0.6rem;color:var(--text-muted);">💬 SMS</div>
+                                    </div>` : ''}
+                                </div>
+                            </div>`;
+                    }).join('') : '<div style="color:var(--text-muted);text-align:center;padding:2rem;">No week-over-week changes found in last 3 weeks.</div>';
+                }
+
+                window.csCommandMetrics = companyMetrics;
+            } catch (e) {
+                console.error("renderCSCommand error:", e);
+            }
+        }
+
+        window.csCommandSort = function(sortType) {
+            const companyMetrics = window.csCommandMetrics || [];
+            if (companyMetrics.length === 0) return;
+
+            let sorted = [...companyMetrics];
+            
+            if (sortType === 'trend-positive') {
+                sorted.sort((a, b) => b.totalChange - a.totalChange);
+            } else if (sortType === 'trend-negative') {
+                sorted.sort((a, b) => a.totalChange - b.totalChange);
+            } else if (sortType === 'change-largest') {
+                sorted.sort((a, b) => b.absChange - a.absChange);
+            } else if (sortType === 'change-smallest') {
+                sorted.sort((a, b) => a.absChange - b.absChange);
+            }
+
+            const tbody = document.getElementById('csCommandTbody');
+            if (tbody) {
+                tbody.innerHTML = sorted.map(c => {
+                    const isPositive = c.totalChange > 0;
+                    const color = isPositive ? '#10b981' : '#ef4444';
+                    const arrow = isPositive ? '📈' : '📉';
+                    const bgColor = isPositive ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)';
+                    
+                    return `
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); background: ${bgColor};">
+                            <td style="padding: 1rem;"><div style="font-weight: 700; color: var(--text-main);">${c.companyName}</div><div style="font-size: 0.7rem; color: var(--text-muted);">${c.plan.substring(0, 35)}</div></td>
+                            <td style="padding: 1rem; color: var(--text-muted);">${c.prevWeek} → ${c.currWeek}</td>
+                            <td style="padding: 1rem; text-align: center;"><div style="color: var(--text-muted);">${c.prevEmails}→${c.currEmails}</div><div style="color: ${c.emailChange >= 0 ? '#10b981' : '#ef4444'}; font-weight: 600; font-size: 0.8rem;">${c.emailChange >= 0 ? '+' : ''}${c.emailChange}</div></td>
+                            <td style="padding: 1rem; text-align: center;"><div style="color: var(--text-muted);">${c.prevCalls}→${c.currCalls}</div><div style="color: ${c.callChange >= 0 ? '#10b981' : '#ef4444'}; font-weight: 600; font-size: 0.8rem;">${c.callChange >= 0 ? '+' : ''}${c.callChange}</div></td>
+                            <td style="padding: 1rem; text-align: center;"><div style="font-size: 1rem; font-weight: 800; color: ${color};">${arrow} ${c.totalChange > 0 ? '+' : ''}${c.totalChange}</div></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+window.switchTab = (id) => {
+            const currentBtn = event.currentTarget;
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            currentBtn.classList.add('active');
+            document.getElementById('pageTitle').innerText = currentBtn.innerText.replace(/[^\w\s]/g, '').trim();
+        };
+
+        window.saveNote = () => { appData.notes = document.getElementById('scratchpad').value; syncSave(); };
+
+        window.showHealthDetails = (status) => {
+            const modal = document.getElementById('healthModal');
+            const list = document.getElementById('healthModalList');
+            const title = document.getElementById('healthModalTitle');
+            
+            const titles = { 'green': 'Healthy Accounts', 'yellow': 'At Risk Accounts', 'red': 'Critical Priority' };
+            const colors = { 'green': 'var(--success)', 'yellow': '#f59e0b', 'red': 'var(--danger)' };
+            
+            title.innerText = titles[status] || 'Accounts';
+            title.style.color = colors[status] || 'var(--text-main)';
+            
+            // Handle both color-based and name-based status strings for backward compatibility
+            const statusMap = {
+                'green': ['green', 'healthy'],
+                'yellow': ['yellow', 'at_risk', 'at-risk', 'risky', 'stable'],
+                'red': ['red', 'critical', 'friction', 'at risk']
+            };
+            
+            const targets = statusMap[status] || [status];
+            const filtered = (appData.clients || []).filter(c => {
+                const s = (c.status || '').toLowerCase();
+                return targets.includes(s);
+            });
+            
+            if (filtered.length === 0) {
+                list.innerHTML = `<div style="text-align:center; padding: 2rem; color: var(--text-muted);">No accounts in this category.</div>`;
+            } else {
+                list.innerHTML = filtered.map(c => `
+                    <div class="account-item">
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-weight:700; font-size:1.05rem;">${c.name}</div>
+                                <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:${colors[status]}">${c.status}</div>
+                            </div>
+                            <div style="font-size:0.85rem; color:rgba(255,255,255,0.7); margin-top:0.5rem; line-height:1.4;">${c.notes || 'No recent notes.'}</div>
+                            <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                                🕒 Last Touch: ${c.lastTouch}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            modal.style.display = 'flex';
+        };
+
+        window.closeModal = () => {
+            document.getElementById('healthModal').style.display = 'none';
+        };
+
+        window.onclick = (event) => {
+            const modal = document.getElementById('healthModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        setInterval(() => {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+        }, 1000);
+
+        async function fetchWeather() {
+            try {
+                const res = await fetch(`https://wttr.in/London?format=j1`);
+                const data = await res.json();
+                document.getElementById('weatherWidget').innerText = `☁️ ${data.current_condition[0].temp_C}°C`;
+            } catch(e) {}
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            syncLoad();
+            fetchWeather();
+        });
+    </script>
+</body>
+</html>
