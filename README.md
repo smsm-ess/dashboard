@@ -1,14 +1,29 @@
 # Mission Control Dashboard
 
-A modern React dashboard connected to Supabase for real-time data visualization.
+An exact replica of your workspace dashboard, now built as a React application with Supabase real-time data integration.
 
 ## Features
 
-- ✅ Real-time database sync with Supabase
-- ✅ Responsive dark theme UI
-- ✅ Live stat cards and charts
-- ✅ Real-time updates via Supabase subscriptions
-- ✅ Built with Vite + React 18 + Tailwind CSS
+- ✅ **Exact UI Replica** – Identical design and functionality to your current dashboard
+- ✅ **Real-time Sync** – Connected to Supabase `mc_state` table
+- ✅ **All 9 Tabs** – CS Command, Account Health, Client Briefs, Live Intel, Active Customers, Projects, Notes, Command Center, Docs Portal
+- ✅ **Modern Stack** – React 18 + Vite + Tailwind CSS
+- ✅ **Dark Theme** – Plus Jakarta Sans typography, glass morphism, purple accents
+- ✅ **Responsive** – Works on desktop and mobile
+
+## Tab Overview
+
+| Tab | Purpose |
+|-----|---------|
+| **CS Command** | Account activity heatmap with email/call metrics |
+| **Account Health** | Track account status, snapshots, and health insights |
+| **Client Briefs** | Store and manage client profile briefs |
+| **Live Intel** | Real-time intelligence feed from all sources |
+| **Active Customers** | HubSpot revenue data and subscription ledger |
+| **Projects** | Kanban board for strategic projects |
+| **Notes** | Scratchpad for deep work brainstorming |
+| **Command Center** | Autonomous agent fleet + decision ledger |
+| **Docs Portal** | Foundational documentation and integrations |
 
 ## Setup
 
@@ -18,112 +33,112 @@ A modern React dashboard connected to Supabase for real-time data visualization.
 npm install
 ```
 
-### 2. Configure Environment Variables
+### 2. Environment Configuration
 
-Create a `.env.local` file in the root directory:
+Supabase credentials are already embedded in the code. In production, move them to `.env`:
 
 ```env
 VITE_SUPABASE_URL=https://ffgrtkcabogwiwipjnqd.supabase.co
-VITE_SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZ3J0a2NhYm9nd2l3aXBqbnFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5Mzk5MzcsImV4cCI6MjA4OTUxNTkzN30.hRhRWoCMkfMuBRC1TJsxa9IhbKRsQ287t3GmoEs_RbU
+VITE_SUPABASE_KEY=your_anon_key_here
 ```
 
-### 3. Run Development Server
+### 3. Development
 
 ```bash
 npm run dev
 ```
 
-The dashboard will be available at `http://localhost:5173`
+Visit `http://localhost:5173`
 
-### 4. Build for Production
+### 4. Production Build
 
 ```bash
 npm run build
 ```
 
-The production build will be in the `dist/` directory.
+## Data Flow
 
-## Database Connection
+Your workspace data syncs automatically:
 
-The dashboard connects to your Supabase `mc_state` table and:
+```
+Google Sheets (Email, Call, Meeting, Token tabs)
+           ↓
+master_data_sync_qa.js
+           ↓
+Supabase `mc_state` table
+           ↓
+Dashboard (Real-time subscriptions)
+```
 
-- **Fetches** the latest dashboard data on mount
-- **Subscribes** to real-time changes via Supabase RealtimeClient
-- **Auto-updates** when data changes in the database
+## Key Files
 
-### Data Structure
+- `src/WorkspaceDashboard.jsx` – Main dashboard component
+- `src/main-workspace.jsx` – React entry point
+- `src/index.css` – Tailwind + custom styles
+- `vercel.json` – Vercel deployment config
+- `vite.config.js` – Vite build settings
 
-Your `mc_state` table should contain:
-```json
-{
-  "data": {
-    "stats": {
-      "totalRevenue": 0,
-      "activeCustomers": 0,
-      "activations": 0,
-      "conversionRate": 0
-    },
-    "activities": [...],
-    "charts": {...}
-  }
+## Gradual React Migration
+
+This dashboard started as an HTML replica. Components are being gradually refactored to React:
+
+- [x] Setup React + Vite + Tailwind
+- [x] Connect to Supabase
+- [ ] Migrate Sidebar to React component
+- [ ] Migrate Header to React component
+- [ ] Migrate CS Command tab to React
+- [ ] Migrate Account Health to React
+- [ ] Refactor other tabs iteratively
+
+## Deployment on Vercel
+
+1. Vercel auto-deploys on push to `main`
+2. Environment variables are pre-configured
+3. Build output: `dist/` directory
+
+Your dashboard is live at your Vercel domain once deployed!
+
+## Customization
+
+### Colors & Theme
+
+Edit CSS variables in `src/index.css`:
+
+```css
+:root {
+  --bg: #0a0a0f;
+  --accent: #a855f7;
+  --success: #10b981;
+  --danger: #ef4444;
 }
 ```
 
-## Usage
+### Data Updates
 
-### Using the useDashboardData Hook
+The dashboard syncs every time your `master_data_sync_qa.js` script runs (your HEARTBEAT schedule). No manual refresh needed.
 
-```jsx
-import { useDashboardData } from './hooks/useDashboardData'
+### Adding New Tabs
 
-export function MyComponent() {
-  const { data, loading, error } = useDashboardData()
-
-  if (loading) return <div>Loading...</div>
-  if (error) return <div>Error: {error}</div>
-
-  return <div>{JSON.stringify(data)}</div>
-}
-```
-
-### Direct Supabase Access
-
-```jsx
-import { fetchDashboardData } from './lib/supabase'
-
-const data = await fetchDashboardData()
-```
-
-## Deployment
-
-The dashboard is configured for deployment on **Vercel**. Simply:
-
-1. Push to the `main` branch
-2. Vercel will automatically build and deploy
-3. Your dashboard will be live at your Vercel domain
+1. Create a new page component in `src/pages/`
+2. Add navigation button in Sidebar
+3. Hook into your `mc_state` Supabase table
 
 ## Tech Stack
 
-- **React 18** - UI library
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **Supabase** - Real-time database
-- **Recharts** - Data visualization (ready for implementation)
-- **Lucide React** - Icon library
+- **React 18** – UI framework
+- **Vite** – Lightning-fast build tool
+- **Tailwind CSS** – Utility-first styling
+- **Supabase** – Real-time backend
+- **Plus Jakarta Sans** – Typography
+- **Recharts** – Data visualization (ready to use)
 
-## Environment Variables
+## Support
 
-| Variable | Description |
-|----------|-------------|
-| `VITE_SUPABASE_URL` | Your Supabase project URL |
-| `VITE_SUPABASE_KEY` | Your Supabase anon/public key |
+For issues or enhancements:
 
-## Contributing
-
-1. Clone the repo
-2. Create a feature branch
-3. Make your changes
-4. Push and create a PR
+1. Check the existing tabs for reference patterns
+2. Refer to `/docs` in the dashboard for foundational documentation
+3. Sync data is always in Supabase `mc_state` table
 
 ## License
 
